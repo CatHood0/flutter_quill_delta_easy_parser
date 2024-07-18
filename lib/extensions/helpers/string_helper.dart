@@ -1,7 +1,17 @@
 import 'package:collection/collection.dart';
 
-///  Splits by new line character ("\n") by putting new line characters into the
-///  array as well. Ex: "hello\n\nworld\n " => ["hello", "\n", "\n", "world", "\n", " "]
+/// Splits a string [str] by new line characters ("\n"), preserving empty lines
+/// as separate tokens in the resulting array.
+///
+/// Example:
+/// ```dart
+/// String input = "hello\n\nworld\n ";
+/// List<String> tokens = tokenizeWithNewLines(input);
+/// print(tokens); // Output: ["hello", "\n", "\n", "world", "\n", " "]
+/// ```
+///
+/// Returns a list of strings where each element represents either a line of text
+/// or a new line character.
 List<String> tokenizeWithNewLines(String str) {
   const String newLine = '\n';
 
