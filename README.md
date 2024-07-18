@@ -77,14 +77,14 @@ Document:
 
 ## What Does the Package Do?
 
-This package transforms the content of a `QuillJS` editor into an easy-to-work-with paragraph format.
+This package transforms the content of a `Quill JS` editor into an easy-to-work-with paragraph format.
 
 By default, a QuillJS editor outputs its content in the `Quill Delta` format. While the `Delta` format works great for a browser-based editor like `Quill`, it's not the most convenient data format if you'd like to generate other types of documents (e.g., Word or PDF) from Quill's contents.
 
-RichText Parser will transform a `Quill Delta` into a more convenient paragraph-based format.
+`RichTextParser` will transform a `Quill Delta` into a more convenient paragraph-based format.
 How Does It Work?
 
-`QuillJS` outputs a `Delta` with a format like the following:
+`Quill JS` outputs a `Delta` with a format like the following:
 
 ```dart
 final delta = Delta()
@@ -120,7 +120,7 @@ final Document document = Document(paragraphs: [
 
 ## The Paragraph Format
 
-A parsed `QuillJS` document is composed entirely of paragraphs. Each `paragraph` must contain either a lines property, which indicates the content of the paragraph. A `Paragraph` may also contain a `blockAttributes` property, which indicates the formatting of the `Paragraph`.
+A parsed `Quill JS` document is composed entirely of paragraphs. Each `paragraph` must contain either a lines property, which indicates the content of the paragraph. A `Paragraph` may also contain a `blockAttributes` property, which indicates the formatting of the `Paragraph`.
 
 `Paragraph` looks like:
 
@@ -159,7 +159,7 @@ class Line{
 }
 ```
 
-For example, consider the following paragraph in Dart:
+For example, consider the following `Paragraph` in Dart:
 
 ```dart
 
@@ -207,4 +207,4 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/LICENSE) file for details.
