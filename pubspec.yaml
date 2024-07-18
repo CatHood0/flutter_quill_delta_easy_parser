@@ -1,0 +1,31 @@
+name: flutter_quill_delta_easy_parser
+description: "Convert your Quill Delta into a simplified document format, making it easier to manage and manipulate text attributes"
+version: 1.0.0
+homepage: https://github.com/CatHood0/flutter_quill_delta_easy_parser
+issue_tracker: https://github.com/CatHood0/flutter_quill_delta_easy_parser/issues
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+  flutter: ">=1.17.0"
+
+topics:
+  - parser
+  - quill-delta 
+  - delta 
+  - document 
+  - rich-text 
+  - converter
+  - flutter-quill
+
+dependencies:
+
+  dart_quill_delta: ^10.0.0
+  equatable: ^2.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+
