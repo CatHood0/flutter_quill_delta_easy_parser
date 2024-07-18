@@ -9,12 +9,10 @@ environment:
   flutter: ">=1.17.0"
 
 topics:
-  - parser
   - quill-delta 
   - delta 
   - document 
   - rich-text 
-  - converter
   - flutter-quill
 
 dependencies:
