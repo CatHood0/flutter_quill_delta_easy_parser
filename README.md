@@ -197,6 +197,8 @@ final Paragraph bulletPointWithUnderlineParagraph = Paragraph(
   blockAttributes: {"list": "bullet"},
   type: ParagraphType.block,
 );
+
+final Document document = Document(paragraphs: [bulletPointWithUnderlineParagraph, bulletPointParagraph]);
 ```
 
 See the test folder for detailed usage examples and test cases.

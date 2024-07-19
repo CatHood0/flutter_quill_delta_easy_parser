@@ -69,15 +69,15 @@ class RichTextParser {
   }
 
   /// Inserts an embedded object into the document.
-  void _insertEmbed(fq.Operation operation, bool asNewParagraph) {
-    if (asNewParagraph) {
+  void _insertEmbed(fq.Operation operation, bool wasPreviousNewLine) {
+    if (wasPreviousNewLine || _document.paragraphs.lastOrNull == null) {
       _document.insert(Paragraph.fromEmbed(operation));
     } else {
       _document.paragraphs[_document.paragraphs.length - 1]
           .insert(Line(data: operation.data, attributes: operation.attributes));
     }
     _isNumberedListActive = false;
-    if (asNewParagraph) {
+    if (wasPreviousNewLine) {
       _startNewParagraph();
     }
   }
