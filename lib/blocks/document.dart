@@ -22,14 +22,13 @@ class Document extends Equatable {
 
   /// Returns the last [paragraph] into the document and validate before to avoid exceptions.
   Paragraph getLastSafe() {
-    if(paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
+    if (paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
     return paragraphs.last;
   }
 
   /// Returns the last [paragraph] into the document.
-  Paragraph getLast() {
-    if(paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
-    return paragraphs.last;
+  Paragraph? getLast() {
+    return paragraphs.lastOrNull;
   }
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
@@ -61,20 +60,21 @@ class Document extends Equatable {
   }
 
   /// Ensures correct formatting of paragraphs in the document.
-  ///
-  /// TODO: Deprecated due to upcoming fixes needed.
   Document ensureCorrectFormat() {
     final List<Paragraph> newParagraphs = [];
     for (int index = 0; index < paragraphs.length; index++) {
       final Paragraph paragraph = paragraphs.elementAt(index);
       if (paragraph.lines.isNotEmpty) {
         final Line line = paragraph.lines.first;
-        if (line.data == '\n' && paragraph.blockAttributes != null && paragraph.lines.length > 1) {
-          newParagraphs.add(Paragraph(lines: [Line(data: '\n')], type: ParagraphType.inline));
+        if (line.data == '\n' && paragraph.lines.length > 1) {
+          newParagraphs.add(Paragraph(lines: [Line(data: '\n')], type: ParagraphType.block));
           paragraph.removeLine(0);
-          paragraph.setTypeSafe(ParagraphType.inline);
+          paragraph.setTypeSafe(paragraph.blockAttributes != null ? ParagraphType.block : ParagraphType.inline);
           newParagraphs.add(paragraph.clone);
         } else {
+          if (line.data == '\n' && paragraph.blockAttributes == null && paragraph.lines.length == 1) {
+            paragraph.setType(ParagraphType.block);
+          } 
           if (paragraph.blockAttributes != null) {
             paragraph.setTypeSafe(ParagraphType.block);
           } else {
