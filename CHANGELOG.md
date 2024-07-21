@@ -1,3 +1,8 @@
+## 1.0.4
+
+* Fix: duplicated new lines
+* Fix: some new lines could contain inline type instead block type
+
 ## 1.0.3
 
 * Fix: block attributes for embeds are ignored
