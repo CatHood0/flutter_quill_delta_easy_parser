@@ -1,3 +1,9 @@
+## 1.0.3
+
+* Fix: block attributes for embeds are ignored
+* Feat: new method to make more safety operations with paragraph and documents
+* Chore: added more tests
+
 ## 1.0.2
 
 * Fix: first insert with a image throws invalid index access
