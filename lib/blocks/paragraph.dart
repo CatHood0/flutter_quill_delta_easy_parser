@@ -72,7 +72,7 @@ class Paragraph extends Equatable {
     );
   }
 
-  /// Inserts a new line into the paragraph.
+  /// Inserts a new Line into the paragraph.
   ///
   /// [line] is the line to be inserted into the paragraph.
   ///

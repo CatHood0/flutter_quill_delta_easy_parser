@@ -4,10 +4,8 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 
 /// A class responsible for parsing Quill Delta operations into a structured document format.
 class RichTextParser {
-  final Document _document = Document(
-      paragraphs: [], setupInfo: SetupInfo(numberedLists: 0, hyperlinks: []));
+  final Document _document = Document(paragraphs: [], setupInfo: SetupInfo(numberedLists: 0, hyperlinks: []));
   bool _isNumberedListActive = false;
-  Map<String, dynamic>? lastAttributes;
 
   /// Parses a Quill Delta into a structured document.
   ///
@@ -15,13 +13,10 @@ class RichTextParser {
   Document? parseDelta(fq.Delta delta) {
     if (delta.isEmpty) return null;
     _document.clean();
-    lastAttributes = null;
     _isNumberedListActive = false;
-    final List<fq.Operation> denormalizedOperations =
-        delta.fullDenormalizer().operations;
+    final List<fq.Operation> denormalizedOperations = delta.fullDenormalizer().operations;
     bool wasPreviousNewLine = false;
     bool ignoreNewLine = false;
-
     for (int index = 0; index < denormalizedOperations.length; index++) {
       ignoreNewLine = true;
       final fq.Operation operation = denormalizedOperations.elementAt(index);
@@ -34,8 +29,7 @@ class RichTextParser {
       // When verify that the next operation has not the same attrs, then will ignore that new line since
       // that one is the definitive (it was the unique insert with the block attribute, but
       // denormalizer makes this to do more easy store on it)
-      if (nextOp != null &&
-          mapEquality(operation.attributes, nextOp.attributes)) {
+      if (nextOp != null && mapEquality(operation.attributes, nextOp.attributes)) {
         ignoreNewLine = false;
       }
 
@@ -47,8 +41,7 @@ class RichTextParser {
   }
 
   /// Internal method to parse a single Quill operation.
-  void _parseOperation(fq.Operation operation,
-      [bool wasPreviousNewLine = false, bool ignoreNewLine = true]) {
+  void _parseOperation(fq.Operation operation, [bool wasPreviousNewLine = false, bool ignoreNewLine = true]) {
     if (operation.data is Map) {
       if ((operation.data as Map)['formula'] != null) {
         _insertFormula(operation);
@@ -64,17 +57,17 @@ class RichTextParser {
 
   /// Starts a new paragraph in the document.
   void _startNewParagraph({fq.Operation? operation}) {
-    _document.insert(
-        Paragraph(lines: [if (operation != null) Line(data: operation.data)]));
+    _document.insert(Paragraph(lines: [if (operation != null) Line(data: operation.data)]));
   }
 
   /// Inserts an embedded object into the document.
   void _insertEmbed(fq.Operation operation, bool wasPreviousNewLine) {
-    if (wasPreviousNewLine || _document.paragraphs.lastOrNull == null) {
+    if (wasPreviousNewLine || _document.paragraphs.isEmpty) {
       _document.insert(Paragraph.fromEmbed(operation));
     } else {
-      _document.paragraphs[_document.paragraphs.length - 1]
-          .insert(Line(data: operation.data, attributes: operation.attributes));
+      final paragraph = _document.getLastSafe();
+      paragraph.insert(Line(data: operation.data, attributes: operation.attributes));
+      _document.updateLastSafe(paragraph);
     }
     _isNumberedListActive = false;
     if (wasPreviousNewLine) {
@@ -93,10 +86,10 @@ class RichTextParser {
   /// Handles the insertion of a new line in the document.
   void _insertNewLine(fq.Operation operation, bool ignoreNewLine) {
     if (operation.attributes != null) {
-      _document.paragraphs[_document.paragraphs.length - 1].blockAttributes =
-          operation.attributes;
-      _document.paragraphs[_document.paragraphs.length - 1].type =
-          ParagraphType.block;
+      final paragraph = _document.getLastSafe();
+      paragraph.blockAttributes = operation.attributes;
+      paragraph.setTypeSafe(ParagraphType.block);
+      _document.updateLastSafe(paragraph);
       if (operation.attributes?['list'] == 'ordered') {
         if (!_isNumberedListActive) {
           _document.setupInfo?.numberedLists++;
@@ -114,17 +107,16 @@ class RichTextParser {
     if (_document.paragraphs.isEmpty) {
       _startNewParagraph();
     }
+    final paragraph = _document.getLast();
     if (operation.attributes != null) {
-      _document.paragraphs[_document.paragraphs.length - 1]
-          .insert(Line(data: operation.data, attributes: operation.attributes));
+      paragraph.insert(Line(data: operation.data, attributes: operation.attributes));
       if (operation.attributes?['link'] != null) {
-        _document.setupInfo?.hyperlinks.add(QHyperLink(
-            text: operation.data as String,
-            link: operation.attributes?['link']!));
+        _document.setupInfo?.hyperlinks
+            .add(QHyperLink(text: operation.data as String, link: operation.attributes?['link']!));
       }
     } else {
-      _document.paragraphs[_document.paragraphs.length - 1]
-          .insert(Line(data: operation.data as String));
+      paragraph.insert(Line(data: operation.data as String));
     }
+    _document.updateLastSafe(paragraph);
   }
 }

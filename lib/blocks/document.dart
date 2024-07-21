@@ -20,6 +20,32 @@ class Document extends Equatable {
     paragraphs.add(paragraph);
   }
 
+  /// Returns the last [paragraph] into the document and validate before to avoid exceptions.
+  Paragraph getLastSafe() {
+    if(paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
+    return paragraphs.last;
+  }
+
+  /// Returns the last [paragraph] into the document.
+  Paragraph getLast() {
+    if(paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
+    return paragraphs.last;
+  }
+
+  /// Update a last [paragraph] into the document validating to make more safe the operation.
+  void updateLastSafe(Paragraph paragraph) {
+    if (paragraphs.isEmpty) {
+      paragraphs.add(paragraph);
+      return;
+    }
+    paragraphs[paragraphs.length - 1] = paragraph;
+  }
+
+  /// Update a last [paragraph] into the document.
+  void updateLast(Paragraph paragraph) {
+    paragraphs[paragraphs.length - 1] = paragraph;
+  }
+
   /// Clears all paragraphs from the document.
   void clean() {
     paragraphs.clear();
@@ -28,8 +54,7 @@ class Document extends Equatable {
   /// Removes all empty paragraphs from the document.
   ///
   /// TODO: Deprecated due to upcoming fixes needed.
-  @Deprecated(
-      'This must not be used since is not used yet. It will be removed in future releases')
+  @Deprecated('This must not be used since is not used yet. It will be removed in future releases')
   Document removeAllEmptyParagraphs() {
     paragraphs.removeWhere((element) => element.lines.isEmpty);
     return this;
@@ -44,11 +69,8 @@ class Document extends Equatable {
       final Paragraph paragraph = paragraphs.elementAt(index);
       if (paragraph.lines.isNotEmpty) {
         final Line line = paragraph.lines.first;
-        if (line.data == '\n' &&
-            paragraph.blockAttributes != null &&
-            paragraph.lines.length > 1) {
-          newParagraphs.add(
-              Paragraph(lines: [Line(data: '\n')], type: ParagraphType.inline));
+        if (line.data == '\n' && paragraph.blockAttributes != null && paragraph.lines.length > 1) {
+          newParagraphs.add(Paragraph(lines: [Line(data: '\n')], type: ParagraphType.inline));
           paragraph.removeLine(0);
           paragraph.setTypeSafe(ParagraphType.inline);
           newParagraphs.add(paragraph.clone);
