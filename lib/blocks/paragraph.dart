@@ -125,7 +125,9 @@ class Paragraph extends Equatable {
   /// Returns a new [Paragraph] instance with identical lines, block attributes, and type.
   Paragraph get clone {
     return Paragraph(
-        lines: [...lines], blockAttributes: {...?blockAttributes}, type: type);
+        lines: [...lines],
+        blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
+        type: type);
   }
 
   @override
