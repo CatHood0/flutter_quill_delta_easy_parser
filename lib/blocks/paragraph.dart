@@ -1,7 +1,6 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:dart_quill_delta/dart_quill_delta.dart' as fq;
 import 'package:equatable/equatable.dart';
+import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
 /// Represents a paragraph consisting of lines of text or embedded content with optional attributes.
@@ -31,7 +30,7 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 /// paragraph.setType(ParagraphType.block);
 ///
 /// ```
-class Paragraph extends Equatable {
+class Paragraph implements EquatableMixin {
   /// List of lines composing the paragraph.
   final List<Line> lines;
 
@@ -56,7 +55,29 @@ class Paragraph extends Equatable {
     required this.lines,
     this.blockAttributes,
     this.type,
-  });
+  }) {
+    // infers the type if it is not passed
+    if (type == null) {
+      if (blockAttributes != null && blockAttributes!.isNotEmpty) {
+        setType(ParagraphType.block);
+      }
+      if (lines.length == 1 && type == null) {
+        final Line line = lines.first;
+        if (line.data == '\n') {
+          setType(ParagraphType.lineBreak);
+        } else if (line.data is Map) {
+          setType(ParagraphType.embed);
+        }
+      }
+    }
+  }
+
+  factory Paragraph.base() {
+    return Paragraph(
+      lines: [],
+      type: ParagraphType.inline,
+    );
+  }
 
   /// Constructs a [Paragraph] instance from a Quill Delta embed operation.
   ///
@@ -72,6 +93,14 @@ class Paragraph extends Equatable {
     );
   }
 
+  bool get isBlock => type == ParagraphType.block;
+  bool get isEmbed => type == ParagraphType.embed;
+  bool get isNewLine => type == ParagraphType.lineBreak;
+  bool get isInsertText => type == ParagraphType.inline;
+  bool containsSameAttributes(Map<String, dynamic>? attrs) {
+    return mapEquality(blockAttributes, attrs);
+  }
+
   /// Inserts a new Line into the paragraph.
   ///
   /// [line] is the line to be inserted into the paragraph.
@@ -79,11 +108,40 @@ class Paragraph extends Equatable {
   /// Throws an exception if the data type of [line] is not a string or a map.
   void insert(Line line) {
     if (line.data is String || line.data is Map) {
-      lines.add(line);
+      _mergeWithTail(line);
       return;
     }
     throw Exception(
         'Invalid data type. Expected a String or Map for line data, but got ${line.data.runtimeType}.');
+  }
+
+  void _mergeWithTail(Line line) {
+    final Line? previous = lines.lastOrNull;
+    void add() {
+      lines.add(line);
+    }
+
+    if (previous == null ||
+        previous.data is! String ||
+        line.data is! String ||
+        '${previous.data}'.endsWith('\n') ||
+        '${line.data}'.endsWith('\n')) {
+      add();
+      return;
+    }
+    final int lastIndex = lines.length - 1;
+    final bool areAttributesEquals = mapEquality(previous.attributes, line.attributes) ||
+        (previous.attributes == null && line.attributes == null);
+    if (areAttributesEquals) {
+      final String previousData = previous.data as String;
+      final String newData = '$previousData${line.data}';
+      lines[lastIndex] = Line(
+        data: newData,
+        attributes: previous.attributes,
+      );
+      return;
+    }
+    add();
   }
 
   /// Removes a line from the paragraph at the specified index.
@@ -125,16 +183,24 @@ class Paragraph extends Equatable {
   /// Returns a new [Paragraph] instance with identical lines, block attributes, and type.
   Paragraph get clone {
     return Paragraph(
-        lines: [...lines],
-        blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
-        type: type);
+      lines: [...lines],
+      blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
+      type: type,
+    );
   }
 
   @override
   String toString() {
-    return 'Paragraph: {Lines: ${lines.map<String>((line) => line.toString().replaceAll('\n', '\\n')).toList().toString()} // Block Attributes: $blockAttributes // Type: ${type?.name}}';
+    return 'Paragraph: {'
+        'Lines: ${lines.map<String>((line) => line.toString().replaceAll('\n', '\\n')).toList().toString()} '
+        '${blockAttributes != null ? 'Paragraph Attributes: $blockAttributes' : ""} '
+        'Type: ${type?.name}'
+        '}';
   }
 
   @override
   List<Object?> get props => [lines, blockAttributes, type];
+
+  @override
+  bool? get stringify => true;
 }

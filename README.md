@@ -2,13 +2,7 @@
 
 A Dart package designed to transform `Flutter Quill` content into a structured document format, making it easier to handle and convert for various use cases like generating `Word` or `PDF` documents.
 
-## Features
-
-- **Delta Parsing**: Converts Quill Delta into a structured document format.
-- **Attribute Handling**: Simplifies management of text attributes like bold, italic, colors, etc.
-- **Paragraph and Line Structuring**: Organizes content into paragraphs and lines for easy manipulation.
-
-## Usage
+## Usage Example
 
 ```dart
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
@@ -33,53 +27,50 @@ void main() {
     ..insert(' to a website');
 
   final Document? document = RichTextParser().parseDelta(delta);
+  debugPrint(document.toPrettyString());
+}
+```
 
-  if (document != null) {
-    print('Parsed Document:');
-    document.paragraphs.forEach((paragraph) {
-      print('Paragraph:');
-      paragraph.lines.forEach((line) {
-        print('Line: ${line.data}, Attributes: ${line.attributes}');
-      });
-      print('Block Attributes: ${paragraph.blockAttributes}');
-    });
-  }
-/*
+Output in console
+
+```console
 Document:
     Paragraph:
-        Line: This is , Attributes: null
-        Line: bold, Attributes: {bold: true}
-        Line:  and , Attributes: null
-        Line: italic, Attributes: {italic: true}
-        Line:  text with , Attributes: null
-        Line: custom color, Attributes: {color: #FF0000}
-        Block Attributes: {header: 1}
+        Line: "This is "
+        Line: "bold", Attributes: {bold: true}
+        Line: " and "
+        Line: "italic", Attributes: {italic: true}
+        Line: " text with "
+        Line: "custom color", Attributes: {color: #FF0000}
+        Paragraph Attributes: {header: 1}
+        Type: block 
     Paragraph:
-        Line: \n, Attributes: null
-        Block Attributes: {header: 1}
+        Line: "\n"
+        Paragraph Attributes: {header: 1}
+        Type: block 
     Paragraph:
-        Line: This is a list item, Attributes: null
-        Block Attributes: {list: ordered}
+        Line: "This is a list item"
+        Paragraph Attributes: {list: ordered}
+        Type: block 
     Paragraph:
-        Line: Another list item, Attributes: null
-        Block Attributes: {list: ordered}
+        Line: "Another list item"
+        Paragraph Attributes: {list: ordered}
+        Type: block 
     Paragraph:
-        Line: Third list item, Attributes: null
-        Block Attributes: null
+        Line: "Third list item"
+        Type: inline 
     Paragraph:
-        Line: This is a , Attributes: null
-        Line: link, Attributes: {link: https://example.com}
-        Line:  to a website, Attributes: null
-        Block Attributes: null
-*/
-}
+        Line: "This is a "
+        Line: "link", Attributes: {link: https://example.com}
+        Line: " to a website"
+        Type: inline 
 ```
 
 ## What Does the Package Do?
 
-This package transforms the content of a `Quill JS` editor into an easy-to-work-with paragraph format.
+This package transforms the content of a **Quill JS** and **Flutter Quill** editors into an easy-to-work-with paragraph format.
 
-By default, a QuillJS editor outputs its content in the `Quill Delta` format. While the `Delta` format works great for a browser-based editor like `Quill`, it's not the most convenient data format if you'd like to generate other types of documents (e.g., Word or PDF) from Quill's contents.
+The output of both editors is `Quill Delta` format. While the `Delta` format works great for a browser-based editor like `Quill`, it's not the most convenient data format if you'd like to generate other types of documents (e.g., Word or PDF) from Quill's contents.
 
 `RichTextParser` will transform a `Quill Delta` into a more convenient paragraph-based format.
 How Does It Work?
@@ -114,7 +105,7 @@ final Document document = Document(paragraphs: [
       Line(data: "bolded text", attributes: {"bold": true})
     ]
   ),
-  Paragraph(lines: [Line('\n')], type: ParagraphType.block)
+  Paragraph(lines: [Line('\n')])
 ]);
 ```
 
@@ -127,8 +118,8 @@ A parsed `Quill JS` document is composed entirely of paragraphs. Each `paragraph
 ```dart
 class Paragraph {
   final List<Line> lines;
-  ParagraphType? type; // this is an enum that contains values like: inline, block and embed
-  Map<String, dynamic>? blockAttributes; // contains all attributes (usually block attributes like "heaeder") that will be applied to whole lines
+  ParagraphType? type; // this is an enum that contains values like: inline, block, lineBreak and embed
+  Map<String, dynamic>? blockAttributes; // contains all attributes (usually block attributes like "header", "align" or "code-block") that will be applied to whole lines
 
   Paragraph({
     required this.lines,
@@ -140,7 +131,7 @@ class Paragraph {
 
 ## Lines
 
-A `Line` represents a segment of content within a `Paragraph`. This content can be a simple `string` of characters or a more complex structure such as an `embed`.
+A `Line` represents a segment of content within a `Paragraph`. This content can be a simple `String` of characters or a more complex structure such as an `embed`.
 
 - **data**: This can be either a string (representing text) or a map (representing an embed or other structured content).
 - **attributes**: A map containing key-value pairs that describe the formatting or other attributes of the Line.
@@ -176,7 +167,7 @@ final Paragraph paragraph = Paragraph(
 
 ## Attributes
 
-Finally, a `Paragraph` can also have a `blockAttributes` property. This property indicates what type of paragraph-level formatting has been applied. For instance, a header is a `Paragraph` that is formatted as a header. Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. An example of a `Paragraph` with formatting is shown below.
+A `Paragraph` can also have a `blockAttributes` property. This property indicates what type of paragraph-level formatting has been applied. For instance, a header is a `Paragraph` that is formatted as a header. Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. An example of a `Paragraph` with formatting is shown below.
 
 ```dart
 

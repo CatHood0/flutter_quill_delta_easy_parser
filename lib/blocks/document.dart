@@ -1,28 +1,28 @@
-// ignore_for_file: must_be_immutable
 import 'package:equatable/equatable.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
 /// Represents a structured document consisting of paragraphs.
-class Document extends Equatable {
+class Document implements EquatableMixin {
   /// List of paragraphs contained within the document.
   final List<Paragraph> paragraphs;
 
-  /// Optional setup information for the document.
-  SetupInfo? setupInfo;
-
   Document({
     required this.paragraphs,
-    this.setupInfo,
   });
 
   /// Inserts a new [paragraph] into the document.
   void insert(Paragraph paragraph) {
-    paragraphs.add(paragraph);
+    final formattedPrs = _formatParagraph(paragraph);
+    if (formattedPrs.isEmpty) {
+      paragraphs.add(paragraph);
+      return;
+    }
+    paragraphs.addAll(formattedPrs);
   }
 
   /// Returns the last [paragraph] into the document and validate before to avoid exceptions.
   Paragraph getLastSafe() {
-    if (paragraphs.isEmpty) paragraphs.add(Paragraph(lines: []));
+    if (paragraphs.isEmpty) paragraphs.add(Paragraph.base());
     return paragraphs.last;
   }
 
@@ -33,11 +33,12 @@ class Document extends Equatable {
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
   void updateLastSafe(Paragraph paragraph) {
-    if (paragraphs.isEmpty) {
+    final int lastIndex = paragraphs.lastIndexOf(paragraph);
+    if (paragraphs.isEmpty || lastIndex == -1) {
       paragraphs.add(paragraph);
       return;
     }
-    paragraphs[paragraphs.length - 1] = paragraph;
+    paragraphs[lastIndex] = paragraph;
   }
 
   /// Update a last [paragraph] into the document.
@@ -50,16 +51,39 @@ class Document extends Equatable {
     paragraphs.clear();
   }
 
-  /// Removes all empty paragraphs from the document.
-  ///
-  /// TODO: Deprecated due to upcoming fixes needed.
-  @Deprecated('This must not be used since is not used yet. It will be removed in future releases')
-  Document removeAllEmptyParagraphs() {
-    paragraphs.removeWhere((element) => element.lines.isEmpty);
-    return this;
+  Iterable<Paragraph> _formatParagraph(Paragraph paragraph) {
+    final List<Paragraph> newParagraphs = [];
+    if (paragraph.lines.isNotEmpty) {
+      final Line line = paragraph.lines.first;
+      if (line.data == '\n' && paragraph.lines.length > 1) {
+        newParagraphs.add(
+          Paragraph(
+            lines: [Line(data: '\n')],
+            type: ParagraphType.lineBreak,
+          ),
+        );
+        paragraph.removeLine(0);
+        if (paragraph.lines.isNotEmpty) {
+          paragraph.setTypeSafe(paragraph.blockAttributes != null ? ParagraphType.block : ParagraphType.inline);
+          newParagraphs.add(paragraph.clone);
+        }
+      } else {
+        if (line.data == '\n' && paragraph.blockAttributes == null && paragraph.lines.length == 1) {
+          paragraph.setType(ParagraphType.lineBreak);
+        }
+        if (paragraph.blockAttributes != null) {
+          paragraph.setTypeSafe(ParagraphType.block);
+        } else if (paragraph.type != ParagraphType.lineBreak) {
+          paragraph.setTypeSafe(ParagraphType.inline);
+        }
+        newParagraphs.add(paragraph);
+      }
+    }
+    return newParagraphs;
   }
 
   /// Ensures correct formatting of paragraphs in the document.
+  @Deprecated('ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
     final List<Paragraph> newParagraphs = [];
     for (int index = 0; index < paragraphs.length; index++) {
@@ -74,7 +98,7 @@ class Document extends Equatable {
         } else {
           if (line.data == '\n' && paragraph.blockAttributes == null && paragraph.lines.length == 1) {
             paragraph.setType(ParagraphType.block);
-          } 
+          }
           if (paragraph.blockAttributes != null) {
             paragraph.setTypeSafe(ParagraphType.block);
           } else {
@@ -99,7 +123,36 @@ class Document extends Equatable {
     return 'Paragraphs: ${paragraphs.map((paragraph) => paragraph.toString()).toList().toString()}';
   }
 
+  /// Returns a version of the string that can be readed more easily.
+  String toPrettyString() {
+    final StringBuffer buffer = StringBuffer('  Paragraph:\n');
+    return 'Document:\n'
+            '${paragraphs.map((Paragraph paragraph) {
+      for (final Line line in paragraph.lines) {
+        buffer.write('    $line\n');
+      }
+      final String attrStr =
+          paragraph.blockAttributes != null ? 'Paragraph Attributes: ${paragraph.blockAttributes}' : "";
+      final String typeStr = paragraph.type != null ? 'Type: ${paragraph.type?.name}' : '';
+      if (attrStr.isNotEmpty) {
+        buffer.write('    $attrStr\n');
+      }
+      if (typeStr.isNotEmpty) {
+        buffer.write('    $typeStr\n');
+      }
+      final String str = '$buffer';
+      buffer
+        ..clear()
+        ..write('  Paragraph:\n');
+      return str;
+    })}'
+        .replaceAll(RegExp(r',|\.|\(|\)'), '');
+  }
+
   /// Returns a list of properties used for equality comparison.
   @override
-  List<Object?> get props => [setupInfo, paragraphs];
+  List<Object?> get props => [paragraphs];
+
+  @override
+  bool? get stringify => true;
 }

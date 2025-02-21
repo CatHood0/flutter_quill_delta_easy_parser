@@ -1,4 +1,3 @@
-// ignore_for_file: must_be_immutable
 import 'package:equatable/equatable.dart';
 
 /// Represents a line of data with associated attributes.
@@ -18,7 +17,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// print(line.toString()); // Output: Data: Updated data, attributes: {color: red, size: 12px}
 /// ```
-class Line extends Equatable {
+class Line implements EquatableMixin {
   /// The main data object associated with the line.
   Object? data;
 
@@ -64,9 +63,12 @@ class Line extends Equatable {
   String toString() {
     data ??= null;
     attributes ??= null;
-    return 'Data: $data, attributes: $attributes';
+    return 'Line: "${data is String ? '$data'.replaceAll('\n', '\\n') : data}"${attributes == null ? '' : ', attributes: $attributes'}';
   }
 
   @override
   List<Object?> get props => [data, attributes];
+
+  @override
+  bool? get stringify => true;
 }
