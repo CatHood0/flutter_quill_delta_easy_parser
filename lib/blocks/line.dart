@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+import 'package:collection/collection.dart';
 
 /// Represents a line of data with associated attributes.
 ///
@@ -17,7 +17,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// print(line.toString()); // Output: Data: Updated data, attributes: {color: red, size: 12px}
 /// ```
-class Line implements EquatableMixin {
+class Line {
   /// The main data object associated with the line.
   Object? data;
 
@@ -67,8 +67,11 @@ class Line implements EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [data, attributes];
+  bool operator ==(covariant Line other) {
+    if (identical(this, other)) return true;
+    return data == other.data && MapEquality().equals(attributes, other.attributes);
+  }
 
   @override
-  bool? get stringify => true;
+  int get hashCode => Object.hash(data, attributes);
 }

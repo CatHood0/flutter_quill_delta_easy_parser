@@ -1,8 +1,8 @@
-import 'package:equatable/equatable.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
 /// Represents a structured document consisting of paragraphs.
-class Document implements EquatableMixin {
+class Document {
   /// List of paragraphs contained within the document.
   final List<Paragraph> paragraphs;
 
@@ -149,10 +149,12 @@ class Document implements EquatableMixin {
         .replaceAll(RegExp(r',|\.|\(|\)'), '');
   }
 
-  /// Returns a list of properties used for equality comparison.
   @override
-  List<Object?> get props => [paragraphs];
+  bool operator ==(covariant Document other) {
+    if (identical(this, other)) return true;
+    return ListEquality().equals(paragraphs, other.paragraphs);
+  }
 
   @override
-  bool? get stringify => true;
+  int get hashCode => Object.hashAll(paragraphs);
 }

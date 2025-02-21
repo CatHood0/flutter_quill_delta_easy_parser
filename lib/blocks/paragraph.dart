@@ -1,5 +1,5 @@
+import 'package:collection/collection.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart' as fq;
-import 'package:equatable/equatable.dart';
 import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
@@ -30,7 +30,7 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 /// paragraph.setType(ParagraphType.block);
 ///
 /// ```
-class Paragraph implements EquatableMixin {
+class Paragraph {
   /// List of lines composing the paragraph.
   final List<Line> lines;
 
@@ -199,8 +199,16 @@ class Paragraph implements EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [lines, blockAttributes, type];
+  bool operator ==(covariant Paragraph other) {
+    if (identical(this, other)) return true;
+    return ListEquality().equals(lines, other.lines) &&
+        type == other.type &&
+        MapEquality().equals(
+          blockAttributes,
+          other.blockAttributes,
+        );
+  }
 
   @override
-  bool? get stringify => true;
+  int get hashCode => Object.hash(lines, blockAttributes, type);
 }
