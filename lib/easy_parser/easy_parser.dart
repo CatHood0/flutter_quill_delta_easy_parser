@@ -1,4 +1,5 @@
 import 'package:dart_quill_delta/dart_quill_delta.dart' as fq;
+import 'package:flutter_quill_delta_easy_parser/extensions/extensions.dart';
 import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
