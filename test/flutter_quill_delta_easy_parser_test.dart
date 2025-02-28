@@ -24,17 +24,22 @@ void main() {
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
@@ -61,23 +66,30 @@ void main() {
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
   test('should remove unnecessary new lines', () {
     final Delta delta = Delta.fromOperations([
-      Operation.insert('This is an interesting example about how the easy parser can work ', {'bold': true}),
+      Operation.insert(
+          'This is an interesting example about how the easy parser can work ',
+          {'bold': true}),
       Operation.insert('\n'),
       Operation.insert(
           'but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that '),
@@ -91,7 +103,8 @@ void main() {
       Paragraph(
         lines: [
           Line(
-              data: "This is an interesting example about how the easy parser can work ",
+              data:
+                  "This is an interesting example about how the easy parser can work ",
               attributes: {'bold': true}),
         ],
         type: ParagraphType.inline,
@@ -99,7 +112,8 @@ void main() {
       Paragraph(
         lines: [
           Line(
-            data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that ",
+            data:
+                "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that ",
           ),
         ],
         type: ParagraphType.inline,
@@ -107,7 +121,8 @@ void main() {
       Paragraph(
         lines: [
           Line(
-            data: "but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
+            data:
+                "but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
           ),
         ],
         type: ParagraphType.inline,
@@ -121,21 +136,28 @@ void main() {
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
-  test('should merge similar operations that contains same attributes (even if both does not contains them)', () {
+  test(
+      'should merge similar operations that contains same attributes (even if both does not contains them)',
+      () {
     final Delta delta = Delta.fromOperations([
       Operation.insert('This is an interesting example', {'bold': true}),
       Operation.insert(' about how the easy parser can work ', {'bold': true}),
@@ -148,10 +170,12 @@ void main() {
       Paragraph(
         lines: [
           Line(
-              data: "This is an interesting example about how the easy parser can work ",
+              data:
+                  "This is an interesting example about how the easy parser can work ",
               attributes: {'bold': true}),
           Line(
-            data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
+            data:
+                "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
           ),
         ],
         type: ParagraphType.inline,
@@ -165,17 +189,22 @@ void main() {
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
@@ -202,17 +231,22 @@ void main() {
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
@@ -285,17 +319,22 @@ void main() {
       Paragraph.newLine(),
     ]);
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
-        expect(
-            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].attributes,
+            expectedDocument.paragraphs[i].lines[j].attributes);
       }
-      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].blockAttributes,
+          expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 
@@ -316,15 +355,20 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(deltaWithNewlines);
-    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+    final Document? parsedDocument =
+        RichTextParser().parseDelta(deltaWithNewlines);
+    expect(
+        parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
 
     for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
-      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      expect(parsedDocument?.paragraphs[i].lines.length,
+          expectedDocument.paragraphs[i].lines.length);
       for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
-        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
+        expect(parsedDocument?.paragraphs[i].lines[j].data,
+            expectedDocument.paragraphs[i].lines[j].data);
       }
-      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+      expect(parsedDocument?.paragraphs[i].type,
+          expectedDocument.paragraphs[i].type);
     }
   });
 }

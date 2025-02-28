@@ -28,7 +28,7 @@ import 'package:flutter_quill_delta_easy_parser/utils/nano_id_generator.dart';
 /// paragraph.insert(Line(data: 'Third line'));
 /// paragraph.setType(ParagraphType.block);
 ///
-/// // if after the insert, you want to avoid another types of 
+/// // if after the insert, you want to avoid another types of
 /// // changes in this paragraph use:
 /// paragraph.seal();
 /// if(paragraph.isSealed) {
@@ -58,7 +58,8 @@ class Paragraph {
     required this.lines,
     required this.type,
     this.blockAttributes,
-  }) : id = nanoid(8), _sealed = false;
+  })  : id = nanoid(8),
+        _sealed = false;
 
   factory Paragraph.base() {
     return Paragraph(
@@ -91,8 +92,10 @@ class Paragraph {
   }
 
   bool get isBlock => type == ParagraphType.block && blockAttributes != null;
-  bool get isEmbed => type == ParagraphType.embed && lines.single.data is Map<String, dynamic>;
-  bool get isNewLine => type == ParagraphType.lineBreak && lines.single.data == '\n';
+  bool get isEmbed =>
+      type == ParagraphType.embed && lines.single.data is Map<String, dynamic>;
+  bool get isNewLine =>
+      type == ParagraphType.lineBreak && lines.single.data == '\n';
   @Deprecated('Use isTextInsert')
   bool get isInsertText => type == ParagraphType.inline;
   bool get isTextInsert => type == ParagraphType.inline;
@@ -110,7 +113,8 @@ class Paragraph {
   /// Throws an exception if the data type of [line] is not a string or a map.
   void insert(Line line) {
     if (_sealed) {
-      throw StateError('Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
     if (line.data is String || line.data is Map) {
       if (line.data is String) {
@@ -139,8 +143,9 @@ class Paragraph {
       return;
     }
     final int lastIndex = lines.length - 1;
-    final bool areAttributesEquals = mapEquality(previous.attributes, line.attributes) ||
-        (previous.attributes == null && line.attributes == null);
+    final bool areAttributesEquals =
+        mapEquality(previous.attributes, line.attributes) ||
+            (previous.attributes == null && line.attributes == null);
     if (areAttributesEquals) {
       final String previousData = previous.data as String;
       final String newData = '$previousData${line.data}';
@@ -158,7 +163,8 @@ class Paragraph {
   /// [index] is the index of the line to be removed.
   void removeLine(int index) {
     if (_sealed) {
-      throw StateError('Cannot be removed the Element at $index when $runtimeType is sealed');
+      throw StateError(
+          'Cannot be removed the Element at $index when $runtimeType is sealed');
     }
     lines.removeAt(index);
   }
@@ -173,7 +179,8 @@ class Paragraph {
   /// Sets the type of the paragraph if it hasn't been set already.
   ///
   /// [lineType] specifies the type of the paragraph to be set, if not already set.
-  @Deprecated('setTypeSafe is no longer used and will be removed in future releases.')
+  @Deprecated(
+      'setTypeSafe is no longer used and will be removed in future releases.')
   void setTypeSafe(ParagraphType? lineType) {}
 
   /// Sets additional attributes for the paragraph block.
@@ -211,7 +218,8 @@ class Paragraph {
   @override
   bool operator ==(covariant Paragraph other) {
     if (identical(this, other)) return true;
-    return id == other.id && ListEquality().equals(lines, other.lines) &&
+    return id == other.id &&
+        ListEquality().equals(lines, other.lines) &&
         type == other.type &&
         MapEquality().equals(
           blockAttributes,

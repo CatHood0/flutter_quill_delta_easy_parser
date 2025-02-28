@@ -69,7 +69,8 @@ class Line {
   @override
   bool operator ==(covariant Line other) {
     if (identical(this, other)) return true;
-    return data == other.data && MapEquality().equals(attributes, other.attributes);
+    return data == other.data &&
+        MapEquality().equals(attributes, other.attributes);
   }
 
   @override

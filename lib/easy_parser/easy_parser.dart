@@ -25,16 +25,19 @@ class RichTextParser {
     if (delta.isEmpty) return null;
     _document.clean();
     _isNumberedListActive = false;
-    final List<fq.Operation> denormalizedOperations = delta.denormalize().operations;
+    final List<fq.Operation> denormalizedOperations =
+        delta.denormalize().operations;
     bool ignoreNewLine = true;
     bool hasNextOp = true;
     int? ignoreNewLineAtIndex = 0;
     for (int index = 0; index < denormalizedOperations.length; index++) {
       final fq.Operation operation = denormalizedOperations.elementAt(index);
-      final fq.Operation? nextOp = denormalizedOperations.elementAtOrNull(index + 1);
+      final fq.Operation? nextOp =
+          denormalizedOperations.elementAtOrNull(index + 1);
       // a basic check to avoid process retain or delete operations
       if (!operation.isInsert || nextOp != null && !nextOp.isInsert) {
-        final type = nextOp != null && nextOp.isInsert ? nextOp.key : operation.key;
+        final type =
+            nextOp != null && nextOp.isInsert ? nextOp.key : operation.key;
         throw StateError(
           'Operation at ${nextOp?.isInsert == false ? index + 1 : index} '
           'is "$type" type and parseDelta() only accepts "insert" types',
@@ -49,7 +52,9 @@ class RichTextParser {
       // "Paragraph 1, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, Paragraph 2"
       //
       // "Paragraph 1, \n, \n, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, \n, \n, Paragraph 2"
-      if (operation.data != '\n' && nextOp?.data == '\n' && nextOp?.attributes == null) {
+      if (operation.data != '\n' &&
+          nextOp?.data == '\n' &&
+          nextOp?.attributes == null) {
         ignoreNewLineAtIndex = index + 1;
       }
 
@@ -61,7 +66,9 @@ class RichTextParser {
       // When verify that the next operation has not the same attrs, then will ignore that new line since
       // that one is the definitive (it was the unique insert with the block attribute, but
       // denormalizer makes this to do more easy store on it)
-      if (nextOp != null && mapEquality(operation.attributes, nextOp.attributes) || !hasNextOp) {
+      if (nextOp != null &&
+              mapEquality(operation.attributes, nextOp.attributes) ||
+          !hasNextOp) {
         ignoreNewLine = false;
       }
 
@@ -154,7 +161,8 @@ class RichTextParser {
     if (operation.attributes != null) {
       Paragraph paragraph = _document.getLastSafe();
       if (paragraph.isEmbed) {
-        _document.updateParagraph(paragraph..blockAttributes = operation.attributes);
+        _document
+            .updateParagraph(paragraph..blockAttributes = operation.attributes);
         return;
       }
       // if the last added paragraph is already a block or line-break element
@@ -219,7 +227,9 @@ class RichTextParser {
   /// Inserts text into the document.
   void _insertText(fq.Operation operation, bool hasNextOp) {
     Paragraph? paragraph = _document.getLast();
-    if (paragraph == null || paragraph.type != ParagraphType.inline || paragraph.isSealed) {
+    if (paragraph == null ||
+        paragraph.type != ParagraphType.inline ||
+        paragraph.isSealed) {
       paragraph = Paragraph.base();
     }
     paragraph.insert(

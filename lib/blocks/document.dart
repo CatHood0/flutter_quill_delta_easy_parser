@@ -28,7 +28,7 @@ class Document {
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
   void updateLastSafe(Paragraph paragraph) {
-    if(paragraphs.isEmpty) {
+    if (paragraphs.isEmpty) {
       paragraphs.add(paragraph);
       return;
     }
@@ -59,9 +59,9 @@ class Document {
     paragraphs.clear();
   }
 
-
   /// Ensures correct formatting of paragraphs in the document.
-  @Deprecated('ensureCorrectFormat is no longer used and will be removed in future releases')
+  @Deprecated(
+      'ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
     final List<Paragraph> newParagraphs = [];
     for (int index = 0; index < paragraphs.length; index++) {
@@ -69,12 +69,17 @@ class Document {
       if (paragraph.lines.isNotEmpty) {
         final Line line = paragraph.lines.first;
         if (line.data == '\n' && paragraph.lines.length > 1) {
-          newParagraphs.add(Paragraph(lines: [Line(data: '\n')], type: ParagraphType.block));
+          newParagraphs.add(
+              Paragraph(lines: [Line(data: '\n')], type: ParagraphType.block));
           paragraph.removeLine(0);
-          paragraph.setTypeSafe(paragraph.blockAttributes != null ? ParagraphType.block : ParagraphType.inline);
+          paragraph.setTypeSafe(paragraph.blockAttributes != null
+              ? ParagraphType.block
+              : ParagraphType.inline);
           newParagraphs.add(paragraph.clone);
         } else {
-          if (line.data == '\n' && paragraph.blockAttributes == null && paragraph.lines.length == 1) {
+          if (line.data == '\n' &&
+              paragraph.blockAttributes == null &&
+              paragraph.lines.length == 1) {
             paragraph.setType(ParagraphType.block);
           }
           if (paragraph.blockAttributes != null) {

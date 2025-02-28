@@ -11,12 +11,14 @@ extension DeltaDenormilazer on Delta {
   Delta denormalize() {
     if (isEmpty) return this;
 
-    final List<Map<String, dynamic>> denormalizedOps = map<List<Map<String, dynamic>>>(
+    final List<Map<String, dynamic>> denormalizedOps =
+        map<List<Map<String, dynamic>>>(
       (Operation op) => _denormalize(
         op.toJson(),
       ),
     ).flattened.toList();
-    return Delta.fromOperations(denormalizedOps.map<Operation>((e) => Operation.fromJson(e)).toList());
+    return Delta.fromOperations(
+        denormalizedOps.map<Operation>((e) => Operation.fromJson(e)).toList());
   }
 
   /// Denormalizes a single operation map by splitting newlines into separate operations.
@@ -25,11 +27,14 @@ extension DeltaDenormilazer on Delta {
   List<Map<String, dynamic>> _denormalize(Map<String, dynamic> op) {
     const newLine = '\n';
     final insertValue = op['insert'];
-    if (insertValue is Map || insertValue == newLine || !insertValue.toString().contains('\n')) {
+    if (insertValue is Map ||
+        insertValue == newLine ||
+        !insertValue.toString().contains('\n')) {
       return <Map<String, dynamic>>[op];
     }
 
-    final List<String> newlinedArray = tokenizeWithNewLines(insertValue.toString());
+    final List<String> newlinedArray =
+        tokenizeWithNewLines(insertValue.toString());
 
     if (newlinedArray.length == 1) {
       return <Map<String, dynamic>>[op];
