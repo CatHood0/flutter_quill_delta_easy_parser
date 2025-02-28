@@ -24,7 +24,8 @@ void main() {
     ..insert('\n')
     ..insert('This is a ')
     ..insert('link', {'link': 'https://example.com'})
-    ..insert(' to a website');
+    ..insert(' to a website')
+    ..insert('\n');
 
   final Document? document = RichTextParser().parseDelta(delta);
   debugPrint(document.toPrettyString());
@@ -47,7 +48,7 @@ Document:
     Paragraph:
         Line: "\n"
         Paragraph Attributes: {header: 1}
-        Type: lineBreak 
+        Type: block 
     Paragraph:
         Line: "This is a list item"
         Paragraph Attributes: {list: ordered}
@@ -94,18 +95,21 @@ final delta = Delta()
 final Document document = Document(paragraphs: [
   Paragraph(
     lines: [Line(data: "Hello, how are you?")]
+    type: ParagraphType.inline,
   ),
   Paragraph(
     lines: [Line(data: "The First Major Section")],
     blockAttributes: {"header": 1}
+    type: ParagraphType.block,
   ),
   Paragraph(
     lines: [
       Line(data: "We are writing some "),
       Line(data: "bolded text", attributes: {"bold": true})
     ]
+    type: ParagraphType.inline,
   ),
-  Paragraph(lines: [Line('\n')])
+  Paragraph.newLine(),
 ]);
 ```
 
@@ -117,14 +121,23 @@ A parsed `Quill JS` document is composed entirely of paragraphs. Each `paragraph
 
 ```dart
 class Paragraph {
+  final String id;
   final List<Line> lines;
-  ParagraphType? type; // this is an enum that contains values like: inline, block, lineBreak and embed
-  Map<String, dynamic>? blockAttributes; // contains all attributes (usually block attributes like "header", "align" or "code-block") that will be applied to whole lines
+  // this is an enum that contains values like: inline, block, lineBreak and embed
+  ParagraphType type;
+  // contains all attributes (usually block attributes like "header", "align" or "code-block") 
+  //that will be applied to whole lines
+  Map<String, dynamic>? blockAttributes; 
+
+  // decides if we want to stop any remove or insert operation type 
+  //
+  // false by default
+  bool _seal;
 
   Paragraph({
     required this.lines,
+    required this.type,
     this.blockAttributes,
-    this.type,
   });
 }
 ```
@@ -132,11 +145,6 @@ class Paragraph {
 ## Lines
 
 A `Line` represents a segment of content within a `Paragraph`. This content can be a simple `String` of characters or a more complex structure such as an `embed`.
-
-- **data**: This can be either a string (representing text) or a map (representing an embed or other structured content).
-- **attributes**: A map containing key-value pairs that describe the formatting or other attributes of the Line.
-
-`Line` looks like:
 
 ```dart
 class Line{
@@ -160,9 +168,13 @@ final Paragraph paragraph = Paragraph(
     Line(data: 'This package will be ', attributes: {'bold': true}),
     Line(data: 'open source', attributes: {'italic': true}),
     Line(data: ' and it will help developers process the text entered into a QuillJS editor.'),
-    Line(data: {'image': 'https://example.com/image.png'}),
   ],
+  type: ParagraphType.inline,
 );
+final Paragraph embedPr = Paragraph(
+  lines: [Line(data: {'image': 'https://example.com/image.png'})],
+  type: ParagraphType.embed,
+); 
 ```
 
 ## Attributes
