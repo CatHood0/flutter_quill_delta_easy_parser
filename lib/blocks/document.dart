@@ -63,40 +63,6 @@ class Document {
   @Deprecated(
       'ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
-    final List<Paragraph> newParagraphs = [];
-    for (int index = 0; index < paragraphs.length; index++) {
-      final Paragraph paragraph = paragraphs.elementAt(index);
-      if (paragraph.lines.isNotEmpty) {
-        final Line line = paragraph.lines.first;
-        if (line.data == '\n' && paragraph.lines.length > 1) {
-          newParagraphs.add(
-              Paragraph(lines: [Line(data: '\n')], type: ParagraphType.block));
-          paragraph.removeLine(0);
-          paragraph.setTypeSafe(paragraph.blockAttributes != null
-              ? ParagraphType.block
-              : ParagraphType.inline);
-          newParagraphs.add(paragraph.clone);
-        } else {
-          if (line.data == '\n' &&
-              paragraph.blockAttributes == null &&
-              paragraph.lines.length == 1) {
-            paragraph.setType(ParagraphType.block);
-          }
-          if (paragraph.blockAttributes != null) {
-            paragraph.setTypeSafe(ParagraphType.block);
-          } else {
-            paragraph.setTypeSafe(ParagraphType.inline);
-          }
-          newParagraphs.add(paragraph);
-        }
-      } else if (paragraph.lines.isEmpty) {
-        paragraph.insert(Line(data: '\n'));
-        paragraph.setTypeSafe(ParagraphType.block);
-        newParagraphs.add(paragraph);
-      }
-    }
-    clean();
-    paragraphs.addAll([...newParagraphs]);
     return this;
   }
 
