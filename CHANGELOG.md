@@ -1,3 +1,15 @@
+## 1.0.6
+
+* Fix: `toPrettyString()` from Document that is not working as expected.
+* Fix: parsing is adding non expected new-line after a common Operation.
+* Fix(test): wrong expects valitation of some tests.
+* Chore: deprecated `isInsertText()` and replaced by `isTextInsert()`.
+* Chore: deprecated `setTypeSafe()` from `Paragraph` class.
+* Chore: parsing is adding non expected new-line after a common Operation.
+* Feat: now `Paragraph` class support seal behavior (prevent any change type).
+* Feat: added support for ignore all new lines into the `Delta` passed using `ignoreAllNewLines`.
+* Feat: added support for get non sealed elements using `returnNoSealedCopies`.
+
 ## 1.0.5
 
 * Fix: sometimes, the `EmbedObject`s can be merged into a inline `Paragraph`.

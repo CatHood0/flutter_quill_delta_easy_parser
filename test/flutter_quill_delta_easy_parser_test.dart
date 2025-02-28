@@ -75,6 +75,66 @@ void main() {
     }
   });
 
+  test('should remove unnecessary new lines', () {
+    final Delta delta = Delta.fromOperations([
+      Operation.insert('This is an interesting example about how the easy parser can work ', {'bold': true}),
+      Operation.insert('\n'),
+      Operation.insert(
+          'but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that '),
+      Operation.insert('\n'),
+      Operation.insert(
+          'but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that'),
+      Operation.insert('\n'),
+    ]);
+
+    final Document expectedDocument = Document(paragraphs: [
+      Paragraph(
+        lines: [
+          Line(
+              data: "This is an interesting example about how the easy parser can work ",
+              attributes: {'bold': true}),
+        ],
+        type: ParagraphType.inline,
+      ),
+      Paragraph(
+        lines: [
+          Line(
+            data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that ",
+          ),
+        ],
+        type: ParagraphType.inline,
+      ),
+      Paragraph(
+        lines: [
+          Line(
+            data: "but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
+          ),
+        ],
+        type: ParagraphType.inline,
+      ),
+      Paragraph(
+        lines: [
+          Line(data: '\n'),
+        ],
+        type: ParagraphType.lineBreak,
+      ),
+    ]);
+
+    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
+
+    for (int i = 0; i < expectedDocument.paragraphs.length; i++) {
+      expect(parsedDocument?.paragraphs[i].lines.length, expectedDocument.paragraphs[i].lines.length);
+      for (int j = 0; j < expectedDocument.paragraphs[i].lines.length; j++) {
+        expect(parsedDocument?.paragraphs[i].lines[j].data, expectedDocument.paragraphs[i].lines[j].data);
+        expect(
+            parsedDocument?.paragraphs[i].lines[j].attributes, expectedDocument.paragraphs[i].lines[j].attributes);
+      }
+      expect(parsedDocument?.paragraphs[i].blockAttributes, expectedDocument.paragraphs[i].blockAttributes);
+      expect(parsedDocument?.paragraphs[i].type, expectedDocument.paragraphs[i].type);
+    }
+  });
+
   test('should merge similar operations that contains same attributes (even if both does not contains them)', () {
     final Delta delta = Delta.fromOperations([
       Operation.insert('This is an interesting example', {'bold': true}),
@@ -92,7 +152,6 @@ void main() {
               attributes: {'bold': true}),
           Line(
             data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
-            attributes: {'bold': true},
           ),
         ],
         type: ParagraphType.inline,
@@ -174,7 +233,8 @@ void main() {
       ..insert('\n')
       ..insert('This is a ')
       ..insert('link', {'link': 'https://example.com'})
-      ..insert(' to a website');
+      ..insert(' to a website')
+      ..insert('\n');
 
     final Document expectedDocument = Document(paragraphs: [
       Paragraph(
@@ -189,7 +249,11 @@ void main() {
         blockAttributes: {"header": 1},
         type: ParagraphType.block,
       ),
-      Paragraph(lines: [Line(data: '\n')], blockAttributes: {"header": 1}, type: ParagraphType.lineBreak),
+      Paragraph(
+        lines: [Line(data: '\n')],
+        blockAttributes: {"header": 1},
+        type: ParagraphType.block,
+      ),
       Paragraph(
         lines: [
           Line(data: 'This is a list item'),
@@ -210,7 +274,6 @@ void main() {
         ],
         type: ParagraphType.inline,
       ),
-      Paragraph(lines: [Line(data: '\n')], type: ParagraphType.lineBreak),
       Paragraph(
         lines: [
           Line(data: 'This is a '),
@@ -219,6 +282,7 @@ void main() {
         ],
         type: ParagraphType.inline,
       ),
+      Paragraph.newLine(),
     ]);
     final Document? parsedDocument = RichTextParser().parseDelta(delta);
     expect(parsedDocument?.paragraphs.length, expectedDocument.paragraphs.length);
@@ -247,10 +311,9 @@ void main() {
     final Delta deltaWithNewlines = Delta()..insert('\n\n\n\n');
 
     final Document expectedDocument = Document(paragraphs: [
-      Paragraph(lines: [Line(data: '\n')], type: ParagraphType.lineBreak),
-      Paragraph(lines: [Line(data: '\n')], type: ParagraphType.lineBreak),
-      Paragraph(lines: [Line(data: '\n')], type: ParagraphType.lineBreak),
-      Paragraph(lines: [Line(data: '\n')], type: ParagraphType.lineBreak),
+      Paragraph.newLine(),
+      Paragraph.newLine(),
+      Paragraph.newLine(),
     ]);
 
     final Document? parsedDocument = RichTextParser().parseDelta(deltaWithNewlines);

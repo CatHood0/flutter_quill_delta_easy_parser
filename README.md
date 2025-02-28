@@ -47,7 +47,7 @@ Document:
     Paragraph:
         Line: "\n"
         Paragraph Attributes: {header: 1}
-        Type: block 
+        Type: lineBreak 
     Paragraph:
         Line: "This is a list item"
         Paragraph Attributes: {list: ordered}

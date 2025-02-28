@@ -13,17 +13,23 @@ class RichTextParser {
 
   /// Parses a Quill Delta into a structured document.
   ///
+  /// * [returnNoSealedCopies] indicates if will need to return a deep copy of the elements to avoid return a [Paragraph]s that cannot add more elements
+  /// * [ignoreAllNewLines] indicates that all the new lines with no block-level target to apply will be ignored
+  ///
   /// Returns the parsed [Document] instance, or null if the delta is empty.
-  Document? parseDelta(fq.Delta delta) {
+  Document? parseDelta(
+    fq.Delta delta, {
+    bool returnNoSealedCopies = false,
+    bool ignoreAllNewLines = false,
+  }) {
     if (delta.isEmpty) return null;
     _document.clean();
     _isNumberedListActive = false;
-    final List<fq.Operation> denormalizedOperations = delta.fullDenormalizer().operations;
-    bool wasPreviousNewLine = false;
-    bool ignoreNewLine = false;
+    final List<fq.Operation> denormalizedOperations = delta.denormalize().operations;
+    bool ignoreNewLine = true;
     bool hasNextOp = true;
+    int? ignoreNewLineAtIndex = 0;
     for (int index = 0; index < denormalizedOperations.length; index++) {
-      ignoreNewLine = true;
       final fq.Operation operation = denormalizedOperations.elementAt(index);
       final fq.Operation? nextOp = denormalizedOperations.elementAtOrNull(index + 1);
       // a basic check to avoid process retain or delete operations
@@ -34,7 +40,18 @@ class RichTextParser {
           'is "$type" type and parseDelta() only accepts "insert" types',
         );
       }
+      ignoreNewLine = operation.data == '\n' && operation.attributes == null;
       hasNextOp = nextOp != null;
+      // check if we should ignore the first new line after this operation
+      //
+      // at this case, we want to avoid something like this:
+      //
+      // "Paragraph 1, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, Paragraph 2"
+      //
+      // "Paragraph 1, \n, \n, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, \n, \n, Paragraph 2"
+      if (operation.data != '\n' && nextOp?.data == '\n' && nextOp?.attributes == null) {
+        ignoreNewLineAtIndex = index + 1;
+      }
 
       // Verify first if the current if a line with just a new line before the last one that is the definitive block attribute
       // _It also ensure to validate if the current operation is just a simple new line_
@@ -44,24 +61,43 @@ class RichTextParser {
       // When verify that the next operation has not the same attrs, then will ignore that new line since
       // that one is the definitive (it was the unique insert with the block attribute, but
       // denormalizer makes this to do more easy store on it)
-      if (nextOp != null && mapEquality(operation.attributes, nextOp.attributes) ||
-          operation.data == '\n' && operation.attributes == null ||
-          !hasNextOp) {
+      if (nextOp != null && mapEquality(operation.attributes, nextOp.attributes) || !hasNextOp) {
         ignoreNewLine = false;
+      }
+
+      if (ignoreNewLineAtIndex == index) {
+        ignoreNewLineAtIndex = null;
+        ignoreNewLine = true;
+      }
+
+      if (ignoreAllNewLines) {
+        ignoreNewLine = true;
       }
 
       _parseOperation(
         operation,
-        wasPreviousNewLine,
         ignoreNewLine,
         hasNextOp,
+        ignoreAllNewLines,
       );
-      wasPreviousNewLine =
-          operation.data == '\n' || '${operation.data}'.startsWith('\n') || '${operation.data}'.endsWith('\n');
     }
     // remove last if needed
     if (_document.paragraphs.isNotEmpty && _document.getLast()!.lines.isEmpty) {
       _document.paragraphs.removeLast();
+    }
+    if (ignoreAllNewLines) {
+      if (_document.getLastSafe().isNewLine) {
+        _document.paragraphs.removeLast();
+      }
+    }
+    if (returnNoSealedCopies) {
+      return Document(
+        paragraphs: _document.paragraphs
+            .map(
+              (pr) => pr.clone,
+            )
+            .toList(),
+      );
     }
     return _document;
   }
@@ -69,68 +105,82 @@ class RichTextParser {
   /// Internal method to parse a single Quill operation.
   void _parseOperation(
     fq.Operation operation, [
-    bool wasPreviousNewLine = false,
     bool ignoreNewLine = true,
     bool hasNextOp = false,
+    bool ignoreAllNewLines = false,
   ]) {
     if (operation.data is Map) {
-      _insertEmbed(operation, wasPreviousNewLine, hasNextOp);
-    } else if ('${operation.data}'.contains('\n') || operation.data == '\n') {
-      _insertNewLine(operation, ignoreNewLine, hasNextOp);
+      _insertEmbed(operation, hasNextOp);
+    } else if (operation.data == '\n') {
+      _insertNewLine(
+        operation,
+        ignoreNewLine,
+        ignoreAllNewLines,
+        hasNextOp,
+      );
     } else {
       _insertText(operation, hasNextOp);
     }
   }
 
   /// Starts a new paragraph in the document.
-  void _startNewParagraph({fq.Operation? operation}) {
-    bool isNewLine = operation?.data == '\n';
-    bool hasNewLine = '${operation?.data}'.startsWith('\n') || '${operation?.data}'.endsWith('\n');
-    final Paragraph builtInPr = Paragraph(
-      lines: [
-        if (operation != null) Line(data: operation.data),
-      ],
-      blockAttributes: isNewLine ? operation?.attributes : null,
-      type: (hasNewLine || isNewLine) && operation?.attributes != null
-          ? ParagraphType.block
-          : (hasNewLine || isNewLine)
-              ? ParagraphType.lineBreak
-              : ParagraphType.inline,
-    );
-    _document.insert(builtInPr);
-    if (builtInPr.type == ParagraphType.lineBreak || builtInPr.type == ParagraphType.block) {
-      _startNewParagraph();
-    }
-  }
+  void _startNewParagraph() => _document.insert(Paragraph.base());
 
   /// Inserts an embedded object into the document.
-  void _insertEmbed(fq.Operation operation, bool wasPreviousNewLine, bool hasNextOp) {
-    _document.insert(Paragraph.fromEmbed(operation));
+  void _insertEmbed(fq.Operation operation, bool hasNextOp) {
+    final Paragraph? lastPr = _document.getLast();
+    if (lastPr != null && lastPr.lines.isEmpty) {
+      lastPr
+        ..insert(Line(
+          data: operation.data,
+          attributes: operation.attributes,
+        ))
+        ..seal();
+      _document.updateParagraph(lastPr);
+      _isNumberedListActive = false;
+      return;
+    }
+    _document.insert(Paragraph.fromEmbed(operation)..seal());
     _isNumberedListActive = false;
   }
 
   /// Handles the insertion of a new line in the document.
-  void _insertNewLine(fq.Operation operation, bool ignoreNewLine, bool hasNextOp) {
+  void _insertNewLine(
+    fq.Operation operation,
+    bool ignoreNewLine,
+    bool ignoreAllNewLines,
+    bool hasNextOp,
+  ) {
     if (operation.attributes != null) {
       Paragraph paragraph = _document.getLastSafe();
       if (paragraph.isEmbed) {
-        _document.updateLastSafe(paragraph..blockAttributes = operation.attributes);
+        _document.updateParagraph(paragraph..blockAttributes = operation.attributes);
         return;
       }
       // if the last added paragraph is already a block or line-break element
       // we need to add it as another element
-      bool needsTypeRedefinition = true;
+      bool needIgnoreUpdate = false;
       if (paragraph.isBlock || paragraph.isNewLine) {
-        needsTypeRedefinition = false;
-        paragraph = Paragraph(lines: [
-          Line(data: operation.data),
-        ], type: ParagraphType.lineBreak);
+        if (!paragraph.isSealed) {
+          _document.updateParagraph(
+            paragraph..seal(),
+          );
+        }
+        needIgnoreUpdate = ignoreAllNewLines;
+        paragraph = Paragraph(
+          lines: [
+            Line(data: operation.data),
+          ],
+          type: ParagraphType.lineBreak,
+        )..seal();
       }
       paragraph.blockAttributes = operation.attributes;
-      if (!_document.getLastSafe().isEmbed && needsTypeRedefinition) {
+      if (!_document.getLastSafe().isEmbed) {
         paragraph.setType(ParagraphType.block);
       }
-      _document.updateLastSafe(paragraph);
+      if (!needIgnoreUpdate) {
+        _document.updateParagraph(paragraph);
+      }
       if (operation.attributes?['list'] == 'ordered') {
         if (!_isNumberedListActive) {
           _isNumberedListActive = true;
@@ -143,19 +193,23 @@ class RichTextParser {
       // if we have a paragraph that is currently empty, we use it instead create a new one
       if (_document.getLast() != null && _document.getLast()!.lines.isEmpty) {
         final Paragraph paragraph = _document.getLastSafe();
-        paragraph.insert(Line(data: '\n'));
-        paragraph.setType(ParagraphType.lineBreak);
-        _document.updateLastSafe(paragraph);
+        paragraph
+          ..insert(Line(data: '\n'))
+          ..setType(ParagraphType.lineBreak)
+          ..seal();
+        _document.updateParagraph(paragraph);
         if (hasNextOp) {
           _startNewParagraph();
         }
         return;
       }
-      final Paragraph paragraph = Paragraph(
-        lines: [Line(data: '\n')],
-        type: ParagraphType.lineBreak,
-      );
-      _document.insert(paragraph);
+      if (!ignoreNewLine || !hasNextOp) {
+        final Paragraph paragraph = Paragraph(
+          lines: [Line(data: '\n')],
+          type: ParagraphType.lineBreak,
+        );
+        _document.insert(paragraph..seal());
+      }
       if (hasNextOp) {
         _startNewParagraph();
       }
@@ -164,11 +218,8 @@ class RichTextParser {
 
   /// Inserts text into the document.
   void _insertText(fq.Operation operation, bool hasNextOp) {
-    if (_document.paragraphs.isEmpty) {
-      _startNewParagraph();
-    }
-    Paragraph paragraph = _document.getLast()!;
-    if (paragraph.type != ParagraphType.inline) {
+    Paragraph? paragraph = _document.getLast();
+    if (paragraph == null || paragraph.type != ParagraphType.inline || paragraph.isSealed) {
       paragraph = Paragraph.base();
     }
     paragraph.insert(
@@ -177,6 +228,6 @@ class RichTextParser {
         attributes: operation.attributes,
       ),
     );
-    _document.updateLastSafe(paragraph);
+    _document.updateParagraph(paragraph);
   }
 }

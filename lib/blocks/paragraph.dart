@@ -2,18 +2,17 @@ import 'package:collection/collection.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart' as fq;
 import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
+import 'package:flutter_quill_delta_easy_parser/utils/nano_id_generator.dart';
 
 /// Represents a paragraph consisting of lines of text or embedded content with optional attributes.
 ///
 /// This class encapsulates the structure of a paragraph, which can contain multiple lines
 /// and may have associated block-level attributes and a specific paragraph type.
 ///
-/// The [lines] property holds a list of [Line] objects representing individual lines within
+/// * [lines] property holds a list of [Line] objects representing individual lines within
 /// the paragraph.
-///
-/// The [type] property specifies the type of paragraph, if any, such as normal text or an embedded content.
-///
-/// The [blockAttributes] property is a map that can hold additional attributes specific to the paragraph block.
+/// * [type] property specifies the type of paragraph, if any, such as normal text or an embedded content.
+/// * [blockAttributes] property is a map that can hold additional attributes specific to the paragraph block.
 ///
 /// Example usage:
 /// ```dart
@@ -22,13 +21,19 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 ///     Line(data: 'First line'),
 ///     Line(data: 'Second line'),
 ///   ],
+///   blockAttributes: {'indent': 2,'align': 'right'},
 ///   type: ParagraphType.block,
-///   blockAttributes: {'indent': 2,'alignment': 'right'},
 /// );
 ///
 /// paragraph.insert(Line(data: 'Third line'));
 /// paragraph.setType(ParagraphType.block);
 ///
+/// // if after the insert, you want to avoid another types of 
+/// // changes in this paragraph use:
+/// paragraph.seal();
+/// if(paragraph.isSealed) {
+///  // do something
+/// }
 /// ```
 class Paragraph {
   /// List of lines composing the paragraph.
@@ -37,45 +42,37 @@ class Paragraph {
   /// The type of the paragraph.
   ///
   /// This can be used to distinguish between different types of paragraphs, such as normal text or embedded content.
-  ParagraphType? type;
+  ParagraphType type;
 
   /// Additional attributes specific to the paragraph block.
   ///
   /// This map can hold any additional metadata or styling information related to the paragraph.
   Map<String, dynamic>? blockAttributes;
 
-  /// Constructs a [Paragraph] instance with required properties.
-  ///
-  /// [lines] specifies the list of lines within the paragraph.
-  ///
-  /// [type] is an optional parameter that defines the type of the paragraph.
-  ///
-  /// [blockAttributes] is an optional map that holds additional attributes for the paragraph block.
+  /// Indicates if the paragraph can insert new elements
+  bool _sealed;
+
+  final String id;
+
   Paragraph({
     required this.lines,
+    required this.type,
     this.blockAttributes,
-    this.type,
-  }) {
-    // infers the type if it is not passed
-    if (type == null) {
-      if (blockAttributes != null && blockAttributes!.isNotEmpty) {
-        setType(ParagraphType.block);
-      }
-      if (lines.length == 1 && type == null) {
-        final Line line = lines.first;
-        if (line.data == '\n') {
-          setType(ParagraphType.lineBreak);
-        } else if (line.data is Map) {
-          setType(ParagraphType.embed);
-        }
-      }
-    }
-  }
+  }) : id = nanoid(8), _sealed = false;
 
   factory Paragraph.base() {
     return Paragraph(
       lines: [],
       type: ParagraphType.inline,
+    );
+  }
+
+  factory Paragraph.newLine() {
+    return Paragraph(
+      lines: [
+        Line(data: '\n'),
+      ],
+      type: ParagraphType.lineBreak,
     );
   }
 
@@ -93,13 +90,18 @@ class Paragraph {
     );
   }
 
-  bool get isBlock => type == ParagraphType.block;
-  bool get isEmbed => type == ParagraphType.embed;
-  bool get isNewLine => type == ParagraphType.lineBreak;
+  bool get isBlock => type == ParagraphType.block && blockAttributes != null;
+  bool get isEmbed => type == ParagraphType.embed && lines.single.data is Map<String, dynamic>;
+  bool get isNewLine => type == ParagraphType.lineBreak && lines.single.data == '\n';
+  @Deprecated('Use isTextInsert')
   bool get isInsertText => type == ParagraphType.inline;
+  bool get isTextInsert => type == ParagraphType.inline;
+  bool get isSealed => _sealed;
   bool containsSameAttributes(Map<String, dynamic>? attrs) {
     return mapEquality(blockAttributes, attrs);
   }
+
+  void seal() => _sealed = true;
 
   /// Inserts a new Line into the paragraph.
   ///
@@ -107,8 +109,15 @@ class Paragraph {
   ///
   /// Throws an exception if the data type of [line] is not a string or a map.
   void insert(Line line) {
+    if (_sealed) {
+      throw StateError('Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
+    }
     if (line.data is String || line.data is Map) {
-      _mergeWithTail(line);
+      if (line.data is String) {
+        _mergeWithTail(line);
+        return;
+      }
+      lines.add(line);
       return;
     }
     throw Exception(
@@ -148,23 +157,24 @@ class Paragraph {
   ///
   /// [index] is the index of the line to be removed.
   void removeLine(int index) {
+    if (_sealed) {
+      throw StateError('Cannot be removed the Element at $index when $runtimeType is sealed');
+    }
     lines.removeAt(index);
   }
 
   /// Sets the type of the paragraph.
   ///
   /// [lineType] specifies the type of the paragraph to be set.
-  void setType(ParagraphType? lineType) {
+  void setType(ParagraphType lineType) {
     type = lineType;
   }
 
   /// Sets the type of the paragraph if it hasn't been set already.
   ///
   /// [lineType] specifies the type of the paragraph to be set, if not already set.
-  void setTypeSafe(ParagraphType? lineType) {
-    if (type != null) return;
-    type = lineType;
-  }
+  @Deprecated('setTypeSafe is no longer used and will be removed in future releases.')
+  void setTypeSafe(ParagraphType? lineType) {}
 
   /// Sets additional attributes for the paragraph block.
   ///
@@ -179,8 +189,6 @@ class Paragraph {
   }
 
   /// Creates a clone of the current paragraph.
-  ///
-  /// Returns a new [Paragraph] instance with identical lines, block attributes, and type.
   Paragraph get clone {
     return Paragraph(
       lines: [...lines],
@@ -192,16 +200,18 @@ class Paragraph {
   @override
   String toString() {
     return 'Paragraph: {'
+        'id: $id, '
         'Lines: ${lines.map<String>((line) => line.toString().replaceAll('\n', '\\n')).toList().toString()} '
         '${blockAttributes != null ? 'Paragraph Attributes: $blockAttributes' : ""} '
-        'Type: ${type?.name}'
+        'Type: ${type.name}, '
+        'Sealed: $_sealed'
         '}';
   }
 
   @override
   bool operator ==(covariant Paragraph other) {
     if (identical(this, other)) return true;
-    return ListEquality().equals(lines, other.lines) &&
+    return id == other.id && ListEquality().equals(lines, other.lines) &&
         type == other.type &&
         MapEquality().equals(
           blockAttributes,
@@ -210,5 +220,5 @@ class Paragraph {
   }
 
   @override
-  int get hashCode => Object.hash(lines, blockAttributes, type);
+  int get hashCode => Object.hash(lines, blockAttributes, type, id);
 }
