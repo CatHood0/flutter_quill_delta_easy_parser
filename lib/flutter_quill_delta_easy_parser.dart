@@ -1,4 +1,4 @@
-library flutter_quill_delta_easy_parser;
+library;
 
 export 'package:flutter_quill_delta_easy_parser/easy_parser/easy_parser.dart';
 export 'package:flutter_quill_delta_easy_parser/blocks/line.dart';
