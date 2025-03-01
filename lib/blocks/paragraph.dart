@@ -187,6 +187,18 @@ class Paragraph {
     _lines[_lines.length - 1].addFragment(fragment);
   }
 
+  void removeLastLineIfNeeded() {
+    if (_sealed) {
+      throw StateError(
+          'Cannot be removed the Element at ${_lines.length - 1} when $runtimeType is sealed');
+    }
+    if (last != null) {
+      if (last!.isEmpty) {
+        _lines.removeLast();
+      }
+    }
+  }
+
   /// Removes last line from the paragraph.
   void removeLastLine() {
     if (_sealed) {

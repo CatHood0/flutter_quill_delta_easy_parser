@@ -72,7 +72,8 @@ class RichTextParser {
       }
 
       if (operation.data == '\n' && !startParagraphNewLineChecking) {
-        _document.insert(Paragraph.newLine());
+        _document
+            .insert(Paragraph.newLine(blockAttributes: operation.attributes));
         continue;
       }
 
@@ -122,7 +123,7 @@ class RichTextParser {
       }
 
       // current op is last
-      if (nextOp == null) {
+      if (operation.data == '\n' && nextOp == null) {
         _insertNewLine(
           operation,
           nextOp,
@@ -140,7 +141,7 @@ class RichTextParser {
         ignoreNewLine,
         hasNextOp,
         ignoreAllNewLines,
-        nextOp.data == '\n' && nextOp.attributes != null,
+        nextOp?.data == '\n' && nextOp?.attributes != null,
       );
 
       final Paragraph? lastPr = _document.getLast();
