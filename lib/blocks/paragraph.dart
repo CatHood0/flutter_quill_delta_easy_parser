@@ -37,7 +37,7 @@ import 'package:flutter_quill_delta_easy_parser/utils/nano_id_generator.dart';
 /// ```
 class Paragraph {
   /// List of lines composing the paragraph.
-  final List<Line> lines;
+  final List<Line> _lines;
 
   /// The type of the paragraph.
   ///
@@ -55,26 +55,60 @@ class Paragraph {
   final String id;
 
   Paragraph({
-    required this.lines,
+    required List<Line> lines,
     required this.type,
     this.blockAttributes,
-  })  : id = nanoid(8),
-        _sealed = false;
+  })  : _lines = List<Line>.from(lines),
+        id = nanoid(8),
+        _sealed = lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
+            ? lines.first.length > 1
+                ? false
+                : lines.single.isNewLine || lines.single.isEmbedFragment
+            : false;
 
-  factory Paragraph.base() {
+  factory Paragraph.withLine() {
     return Paragraph(
-      lines: [],
+      lines: <Line>[
+        Line(
+          fragments: [],
+        ),
+      ],
       type: ParagraphType.inline,
     );
   }
 
-  factory Paragraph.newLine() {
+  factory Paragraph.base() {
     return Paragraph(
-      lines: [
-        Line(data: '\n'),
-      ],
-      type: ParagraphType.lineBreak,
+      lines: <Line>[],
+      type: ParagraphType.inline,
     );
+  }
+
+  factory Paragraph.newLine({Map<String, dynamic>? blockAttributes}) {
+    return Paragraph(
+      lines: <Line>[
+        Line.newLine(),
+      ],
+      blockAttributes: blockAttributes,
+      type: ParagraphType.lineBreak,
+    )..seal();
+  }
+
+  /// Constructs a [Paragraph] instance from a Object embed.
+  /// [operation] is the Quill Delta operation representing the embed.
+  factory Paragraph.fromRawEmbed(
+      {required Object data, Map<String, dynamic>? attributes, Map<String, dynamic>? blockAttributes}) {
+    return Paragraph(
+      lines: <Line>[
+        Line.fromData(data: data, attributes: attributes),
+      ],
+      blockAttributes: blockAttributes,
+      type: data is String
+          ? blockAttributes != null
+              ? ParagraphType.block
+              : ParagraphType.inline
+          : ParagraphType.embed,
+    )..seal();
   }
 
   /// Constructs a [Paragraph] instance from a Quill Delta embed operation.
@@ -84,18 +118,22 @@ class Paragraph {
   /// [operation] is the Quill Delta operation representing the embed.
   factory Paragraph.fromEmbed(fq.Operation operation) {
     return Paragraph(
-      lines: [
-        Line(data: operation.data, attributes: operation.attributes),
+      lines: <Line>[
+        Line.fromData(data: operation.data!, attributes: operation.attributes),
       ],
-      type: ParagraphType.embed,
-    );
+      type: operation.data is String ? ParagraphType.inline : ParagraphType.embed,
+    )..seal();
   }
 
+  List<Line> get lines => List<Line>.unmodifiable(_lines);
+  Line? get last => _lines.lastOrNull;
+  Line? get first => _lines.firstOrNull;
+  int get length => _lines.length;
+  bool get isEmpty => _lines.isEmpty;
+  bool get isNotEmpty => !isEmpty;
   bool get isBlock => type == ParagraphType.block && blockAttributes != null;
-  bool get isEmbed =>
-      type == ParagraphType.embed && lines.single.data is Map<String, dynamic>;
-  bool get isNewLine =>
-      type == ParagraphType.lineBreak && lines.single.data == '\n';
+  bool get isEmbed => type == ParagraphType.embed && lines.first.isEmbedFragment;
+  bool get isNewLine => type == ParagraphType.lineBreak && lines.single.isNewLine;
   @Deprecated('Use isTextInsert')
   bool get isInsertText => type == ParagraphType.inline;
   bool get isTextInsert => type == ParagraphType.inline;
@@ -104,58 +142,49 @@ class Paragraph {
     return mapEquality(blockAttributes, attrs);
   }
 
-  void seal() => _sealed = true;
-
-  /// Inserts a new Line into the paragraph.
-  ///
-  /// [line] is the line to be inserted into the paragraph.
-  ///
-  /// Throws an exception if the data type of [line] is not a string or a map.
-  void insert(Line line) {
-    if (_sealed) {
-      throw StateError(
-          'Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
-    }
-    if (line.data is String || line.data is Map) {
-      if (line.data is String) {
-        _mergeWithTail(line);
-        return;
-      }
-      lines.add(line);
-      return;
-    }
-    throw Exception(
-        'Invalid data type. Expected a String or Map for line data, but got ${line.data.runtimeType}.');
+  void seal() {
+    _sealed = true;
   }
 
-  void _mergeWithTail(Line line) {
-    final Line? previous = lines.lastOrNull;
-    void add() {
-      lines.add(line);
+  void insertEmptyLine() {
+    if (_sealed) {
+      throw StateError('Cannot be inserted when $runtimeType is sealed');
     }
+    if (_lines.isNotEmpty) {
+      _lines.last.seal();
+    }
+    _lines.add(Line(fragments: []));
+  }
 
-    if (previous == null ||
-        previous.data is! String ||
-        line.data is! String ||
-        '${previous.data}'.endsWith('\n') ||
-        '${line.data}'.endsWith('\n')) {
-      add();
-      return;
+  /// Inserts a new Line into the paragraph.
+  void insert(Line line) {
+    if (_sealed) {
+      throw StateError('Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
-    final int lastIndex = lines.length - 1;
-    final bool areAttributesEquals =
-        mapEquality(previous.attributes, line.attributes) ||
-            (previous.attributes == null && line.attributes == null);
-    if (areAttributesEquals) {
-      final String previousData = previous.data as String;
-      final String newData = '$previousData${line.data}';
-      lines[lastIndex] = Line(
-        data: newData,
-        attributes: previous.attributes,
-      );
-      return;
+    _lines.add(line);
+  }
+
+  void updateLine(int index, Line line) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${line.runtimeType} at $index cannot be updated when $runtimeType is sealed');
     }
-    add();
+    _lines[index] = line;
+  }
+
+  void insertTextFragment(TextFragment fragment) {
+    if (_sealed) {
+      throw StateError('Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
+    }
+    _lines[_lines.length - 1].addFragment(fragment);
+  }
+
+  /// Removes last line from the paragraph.
+  void removeLastLine() {
+    if (_sealed) {
+      throw StateError('Cannot be removed the Element at ${_lines.length - 1} when $runtimeType is sealed');
+    }
+    _lines.removeLast();
   }
 
   /// Removes a line from the paragraph at the specified index.
@@ -163,10 +192,9 @@ class Paragraph {
   /// [index] is the index of the line to be removed.
   void removeLine(int index) {
     if (_sealed) {
-      throw StateError(
-          'Cannot be removed the Element at $index when $runtimeType is sealed');
+      throw StateError('Cannot be removed the Element at $index when $runtimeType is sealed');
     }
-    lines.removeAt(index);
+    _lines.removeAt(index);
   }
 
   /// Sets the type of the paragraph.
@@ -179,8 +207,7 @@ class Paragraph {
   /// Sets the type of the paragraph if it hasn't been set already.
   ///
   /// [lineType] specifies the type of the paragraph to be set, if not already set.
-  @Deprecated(
-      'setTypeSafe is no longer used and will be removed in future releases.')
+  @Deprecated('setTypeSafe is no longer used and will be removed in future releases.')
   void setTypeSafe(ParagraphType? lineType) {}
 
   /// Sets additional attributes for the paragraph block.
@@ -192,13 +219,13 @@ class Paragraph {
 
   /// Clears all lines from the paragraph.
   void clean() {
-    lines.clear();
+    _lines.clear();
   }
 
   /// Creates a clone of the current paragraph.
   Paragraph get clone {
     return Paragraph(
-      lines: [...lines],
+      lines: [..._lines],
       blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
       type: type,
     );
@@ -208,11 +235,24 @@ class Paragraph {
   String toString() {
     return 'Paragraph: {'
         'id: $id, '
-        'Lines: ${lines.map<String>((line) => line.toString().replaceAll('\n', '\\n')).toList().toString()} '
+        'Lines: ${lines.map<String>((line) => line.toString()).toList().toString()} '
         '${blockAttributes != null ? 'Paragraph Attributes: $blockAttributes' : ""} '
         'Type: ${type.name}, '
         'Sealed: $_sealed'
         '}';
+  }
+
+  String toPrettyString({String indent = ' '}) {
+    final StringBuffer buffer = StringBuffer(indent);
+    final String rawFragments = _lines.map((Line line) {
+      buffer.writeln('${'$indent  '}${line.toString().replaceAll('\n', '¶')},');
+      final String str = '$buffer';
+      buffer
+        ..clear()
+        ..write(indent);
+      return str;
+    }).join();
+    return '${indent}Paragraph: [\n$rawFragments${'$indent  '}]';
   }
 
   @override

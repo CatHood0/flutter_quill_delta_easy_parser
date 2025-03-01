@@ -11,19 +11,37 @@ class Document {
   });
 
   /// Inserts a new [paragraph] into the document.
-  void insert(Paragraph paragraph) {
+  void insert(Paragraph paragraph, {bool updateIfExist = false}) {
+    if(exist(paragraph) && updateIfExist) {
+      updateParagraph(paragraph);
+      return; 
+    }
+    paragraphs.add(paragraph);
+  }
+  
+  void updateParagraphSafe(Paragraph paragraph) {
+    if(exist(paragraph)) {
+      updateParagraph(paragraph);
+      return; 
+    }
     paragraphs.add(paragraph);
   }
 
   /// Returns the last [paragraph] into the document and validate before to avoid exceptions.
   Paragraph getLastSafe() {
-    if (paragraphs.isEmpty) paragraphs.add(Paragraph.base());
+    if (paragraphs.isEmpty) Paragraph.base();
     return paragraphs.last;
   }
 
   /// Returns the last [paragraph] into the document.
   Paragraph? getLast({Paragraph Function()? orElse}) {
     return paragraphs.lastOrNull ?? orElse?.call();
+  }
+
+  /// Returns a [bool] value that indicates if the [Paragraph] exists into the [Document].
+  bool exist(Paragraph pr) {
+    if (paragraphs.isEmpty) return false;
+    return paragraphs.contains(pr) || paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
   }
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
@@ -43,8 +61,7 @@ class Document {
       lastIndex = paragraphs.indexWhere((pr) => pr.id == paragraph.id);
     }
     if (paragraphs.isEmpty || lastIndex == -1) {
-      paragraphs.add(paragraph);
-      return;
+      throw StateError('Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
     }
     paragraphs[lastIndex] = paragraph;
   }
@@ -60,8 +77,7 @@ class Document {
   }
 
   /// Ensures correct formatting of paragraphs in the document.
-  @Deprecated(
-      'ensureCorrectFormat is no longer used and will be removed in future releases')
+  @Deprecated('ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
     return this;
   }
@@ -77,7 +93,7 @@ class Document {
     final StringBuffer buffer = StringBuffer('  Paragraph:\n');
     final String rawParagraph = paragraphs.map((Paragraph paragraph) {
       for (final Line line in paragraph.lines) {
-        buffer.writeln('    $line');
+        buffer.writeln('  ${line.toPrettyString(indent: '  ')}');
       }
       final String attrStr = paragraph.blockAttributes != null
           ? 'Paragraph Attributes: ${paragraph.blockAttributes ?? <String, dynamic>{}}'
