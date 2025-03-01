@@ -12,7 +12,8 @@ abstract class MergerBuilder {
 
   /// Decides if we will merge the current Pr ↓ with the nextParagraph
   bool get enabled => keysToAccumulate != null && keysToAccumulate!.isNotEmpty;
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph});
+  bool canMergeBothParagraphs(
+      {required Paragraph paragraph, required Paragraph nextParagraph});
 
   Iterable<Paragraph> buildAccumulation(List<Paragraph> paragraphs);
 }
@@ -21,7 +22,8 @@ abstract class MergerBuilder {
 class NoMergeBuilder extends MergerBuilder {
   const NoMergeBuilder();
   @override
-  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) => <Paragraph>[...paragraphs];
+  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) =>
+      <Paragraph>[...paragraphs];
 
   @override
   List<String>? get keysToAccumulate => null;
@@ -30,20 +32,24 @@ class NoMergeBuilder extends MergerBuilder {
   bool get enabled => false;
 
   @override
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph}) => false;
+  bool canMergeBothParagraphs(
+          {required Paragraph paragraph, required Paragraph nextParagraph}) =>
+      false;
 }
 
 @immutable
 class BlockMergerBuilder extends MergerBuilder {
   const BlockMergerBuilder();
   @override
-  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) => <Paragraph>[...paragraphs];
+  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) =>
+      <Paragraph>[...paragraphs];
 
   @override
   bool get enabled => true;
 
   @override
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph}) {
+  bool canMergeBothParagraphs(
+      {required Paragraph paragraph, required Paragraph nextParagraph}) {
     return false;
   }
 
@@ -74,7 +80,8 @@ class CommonMergerBuilder extends MergerBuilder {
         result.add(curParagraph);
         break;
       }
-      if (canMergeBothParagraphs(paragraph: curParagraph, nextParagraph: nextParagraph)) {
+      if (canMergeBothParagraphs(
+          paragraph: curParagraph, nextParagraph: nextParagraph)) {
         final Paragraph paragraphResult = Paragraph(
           lines: <Line>[
             ...curParagraph.lines,
@@ -97,7 +104,8 @@ class CommonMergerBuilder extends MergerBuilder {
   bool get enabled => true;
 
   @override
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph}) {
+  bool canMergeBothParagraphs(
+      {required Paragraph paragraph, required Paragraph nextParagraph}) {
     if (_paragraphIsNewLine(paragraph) || _paragraphIsNewLine(nextParagraph)) {
       return false;
     }

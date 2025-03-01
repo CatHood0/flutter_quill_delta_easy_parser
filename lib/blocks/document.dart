@@ -12,17 +12,17 @@ class Document {
 
   /// Inserts a new [paragraph] into the document.
   void insert(Paragraph paragraph, {bool updateIfExist = false}) {
-    if(exist(paragraph) && updateIfExist) {
+    if (exist(paragraph) && updateIfExist) {
       updateParagraph(paragraph);
-      return; 
+      return;
     }
     paragraphs.add(paragraph);
   }
-  
+
   void updateParagraphSafe(Paragraph paragraph) {
-    if(exist(paragraph)) {
+    if (exist(paragraph)) {
       updateParagraph(paragraph);
-      return; 
+      return;
     }
     paragraphs.add(paragraph);
   }
@@ -41,7 +41,8 @@ class Document {
   /// Returns a [bool] value that indicates if the [Paragraph] exists into the [Document].
   bool exist(Paragraph pr) {
     if (paragraphs.isEmpty) return false;
-    return paragraphs.contains(pr) || paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
+    return paragraphs.contains(pr) ||
+        paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
   }
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
@@ -61,7 +62,8 @@ class Document {
       lastIndex = paragraphs.indexWhere((pr) => pr.id == paragraph.id);
     }
     if (paragraphs.isEmpty || lastIndex == -1) {
-      throw StateError('Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
+      throw StateError(
+          'Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
     }
     paragraphs[lastIndex] = paragraph;
   }
@@ -77,7 +79,8 @@ class Document {
   }
 
   /// Ensures correct formatting of paragraphs in the document.
-  @Deprecated('ensureCorrectFormat is no longer used and will be removed in future releases')
+  @Deprecated(
+      'ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
     return this;
   }

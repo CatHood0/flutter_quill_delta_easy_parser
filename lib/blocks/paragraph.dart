@@ -60,11 +60,12 @@ class Paragraph {
     this.blockAttributes,
   })  : _lines = List<Line>.from(lines),
         id = nanoid(8),
-        _sealed = lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
-            ? lines.first.length > 1
-                ? false
-                : lines.single.isNewLine || lines.single.isEmbedFragment
-            : false;
+        _sealed =
+            lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
+                ? lines.first.length > 1
+                    ? false
+                    : lines.single.isNewLine || lines.single.isEmbedFragment
+                : false;
 
   factory Paragraph.withLine() {
     return Paragraph(
@@ -97,7 +98,9 @@ class Paragraph {
   /// Constructs a [Paragraph] instance from a Object embed.
   /// [operation] is the Quill Delta operation representing the embed.
   factory Paragraph.fromRawEmbed(
-      {required Object data, Map<String, dynamic>? attributes, Map<String, dynamic>? blockAttributes}) {
+      {required Object data,
+      Map<String, dynamic>? attributes,
+      Map<String, dynamic>? blockAttributes}) {
     return Paragraph(
       lines: <Line>[
         Line.fromData(data: data, attributes: attributes),
@@ -121,7 +124,8 @@ class Paragraph {
       lines: <Line>[
         Line.fromData(data: operation.data!, attributes: operation.attributes),
       ],
-      type: operation.data is String ? ParagraphType.inline : ParagraphType.embed,
+      type:
+          operation.data is String ? ParagraphType.inline : ParagraphType.embed,
     )..seal();
   }
 
@@ -132,8 +136,10 @@ class Paragraph {
   bool get isEmpty => _lines.isEmpty;
   bool get isNotEmpty => !isEmpty;
   bool get isBlock => type == ParagraphType.block && blockAttributes != null;
-  bool get isEmbed => type == ParagraphType.embed && lines.first.isEmbedFragment;
-  bool get isNewLine => type == ParagraphType.lineBreak && lines.single.isNewLine;
+  bool get isEmbed =>
+      type == ParagraphType.embed && lines.first.isEmbedFragment;
+  bool get isNewLine =>
+      type == ParagraphType.lineBreak && lines.single.isNewLine;
   @Deprecated('Use isTextInsert')
   bool get isInsertText => type == ParagraphType.inline;
   bool get isTextInsert => type == ParagraphType.inline;
@@ -159,7 +165,8 @@ class Paragraph {
   /// Inserts a new Line into the paragraph.
   void insert(Line line) {
     if (_sealed) {
-      throw StateError('Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${line.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
     _lines.add(line);
   }
@@ -174,7 +181,8 @@ class Paragraph {
 
   void insertTextFragment(TextFragment fragment) {
     if (_sealed) {
-      throw StateError('Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
     _lines[_lines.length - 1].addFragment(fragment);
   }
@@ -182,7 +190,8 @@ class Paragraph {
   /// Removes last line from the paragraph.
   void removeLastLine() {
     if (_sealed) {
-      throw StateError('Cannot be removed the Element at ${_lines.length - 1} when $runtimeType is sealed');
+      throw StateError(
+          'Cannot be removed the Element at ${_lines.length - 1} when $runtimeType is sealed');
     }
     _lines.removeLast();
   }
@@ -192,7 +201,8 @@ class Paragraph {
   /// [index] is the index of the line to be removed.
   void removeLine(int index) {
     if (_sealed) {
-      throw StateError('Cannot be removed the Element at $index when $runtimeType is sealed');
+      throw StateError(
+          'Cannot be removed the Element at $index when $runtimeType is sealed');
     }
     _lines.removeAt(index);
   }
@@ -207,7 +217,8 @@ class Paragraph {
   /// Sets the type of the paragraph if it hasn't been set already.
   ///
   /// [lineType] specifies the type of the paragraph to be set, if not already set.
-  @Deprecated('setTypeSafe is no longer used and will be removed in future releases.')
+  @Deprecated(
+      'setTypeSafe is no longer used and will be removed in future releases.')
   void setTypeSafe(ParagraphType? lineType) {}
 
   /// Sets additional attributes for the paragraph block.

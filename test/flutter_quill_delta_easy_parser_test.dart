@@ -39,7 +39,9 @@ void main() {
 
   test('should remove unnecessary new lines', () {
     final Delta delta = Delta.fromOperations([
-      Operation.insert('This is an interesting example about how the easy parser can work ', {'bold': true}),
+      Operation.insert(
+          'This is an interesting example about how the easy parser can work ',
+          {'bold': true}),
       Operation.insert('\n'),
       Operation.insert(
           'but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that '),
@@ -53,14 +55,17 @@ void main() {
       Paragraph(
         lines: [
           Line.fromData(
-            data: "This is an interesting example about how the easy parser can work ",
+            data:
+                "This is an interesting example about how the easy parser can work ",
             attributes: {'bold': true},
           ),
           Line.fromData(
-            data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that ",
+            data:
+                "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that ",
           ),
           Line.fromData(
-            data: "but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
+            data:
+                "but 2, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
           ),
         ],
         type: ParagraphType.inline,
@@ -72,7 +77,9 @@ void main() {
     _execExpects(parsedDocument, expectedDocument);
   });
 
-  test('should merge similar operations that contains same attributes (even if both does not contains them)', () {
+  test(
+      'should merge similar operations that contains same attributes (even if both does not contains them)',
+      () {
     final Delta delta = Delta.fromOperations([
       Operation.insert('This is an interesting example', {'bold': true}),
       Operation.insert(' about how the easy parser can work ', {'bold': true}),
@@ -87,11 +94,13 @@ void main() {
           Line(
             fragments: [
               TextFragment(
-                data: "This is an interesting example about how the easy parser can work ",
+                data:
+                    "This is an interesting example about how the easy parser can work ",
                 attributes: {'bold': true},
               ),
               TextFragment(
-                data: "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
+                data:
+                    "but, sometimes, it could get a unexpected behavior, so... we make some test to avoid that",
               ),
             ],
           ),
@@ -156,7 +165,8 @@ void main() {
               TextFragment(data: ' and '),
               TextFragment(data: 'italic', attributes: {'italic': true}),
               TextFragment(data: ' text with '),
-              TextFragment(data: 'custom color', attributes: {'color': '#FF0000'}),
+              TextFragment(
+                  data: 'custom color', attributes: {'color': '#FF0000'}),
             ],
           ),
         ],
@@ -182,7 +192,8 @@ void main() {
           Line(
             fragments: [
               TextFragment(data: 'This is a '),
-              TextFragment(data: 'link', attributes: {'link': 'https://example.com'}),
+              TextFragment(
+                  data: 'link', attributes: {'link': 'https://example.com'}),
               TextFragment(data: ' to a website'),
             ],
           ),
@@ -213,7 +224,8 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(deltaWithNewlines);
+    final Document? parsedDocument =
+        RichTextParser().parseDelta(deltaWithNewlines);
     _execExpects(parsedDocument, expectedDocument);
   });
 }
@@ -232,7 +244,8 @@ void _execExpects(Document? parsedDocument, Document expectedDocument) {
     expect(
       parsedDocument?.paragraphs[i].length,
       expectedDocument.paragraphs[i].length,
-      reason: 'Len lines in paragraph($i) difference: Parsed(${parsedDocument?.paragraphs[i].length})'
+      reason:
+          'Len lines in paragraph($i) difference: Parsed(${parsedDocument?.paragraphs[i].length})'
           ' is not the same of the Expected(${expectedDocument.paragraphs[i].length}).\n'
           'Parsed Lines: ${parsedDocument?.paragraphs[i].toPrettyString()},\n'
           'Expected Lines: ${expectedDocument.paragraphs[i].toPrettyString()}',

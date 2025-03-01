@@ -9,22 +9,21 @@ class RichTextParser {
     this.mergerBuilder = const CommonMergerBuilder(),
   });
 
-  
   /// This is the encharge to merge some paragraphs when they contains the same block attributes
   /// or when contains same types.
   ///
   /// Default implementations:
   ///
   ///  1. [NoMergeBuilder]: don't do nothing
-  ///  2. [CommonMergerBuilder] (default merge behavior): check if the [Paragraph] can be merged. It's focused on merge general [Paragraph] (even if them are pure inline types) 
-  ///  3. [BlockMergerBuilder]: check just if the [Paragraph]s with block-attributes can be merge into a same one. 
+  ///  2. [CommonMergerBuilder] (default merge behavior): check if the [Paragraph] can be merged. It's focused on merge general [Paragraph] (even if them are pure inline types)
+  ///  3. [BlockMergerBuilder]: check just if the [Paragraph]s with block-attributes can be merge into a same one.
   ///
   /// Example:
   ///
   /// ```dart
-  /// // to ignore merging behavior 
+  /// // to ignore merging behavior
   /// final parser1 = RichTextParser(mergerBuilder: NoMergeBuilder())
-  /// // to merge [Paragraph]s if them can do it 
+  /// // to merge [Paragraph]s if them can do it
   /// final parser2 = RichTextParser(mergerBuilder: CommonMergerBuilder())
   /// // to only merge blocks
   /// final parser3 = RichTextParser(mergerBuilder: BlockMergerBuilder())
@@ -46,7 +45,8 @@ class RichTextParser {
   }) {
     if (delta.isEmpty) return null;
     _document.clean();
-    final List<fq.Operation> denormalizedOperations = delta.denormalize().operations;
+    final List<fq.Operation> denormalizedOperations =
+        delta.denormalize().operations;
     bool ignoreNewLine = true;
     bool hasNextOp = true;
     int? ignoreNewLineAtIndex;
@@ -56,10 +56,12 @@ class RichTextParser {
     Map<String, dynamic>? lastBlockAttributesKnown;
     for (int index = 0; index < denormalizedOperations.length; index++) {
       final fq.Operation operation = denormalizedOperations.elementAt(index);
-      final fq.Operation? nextOp = denormalizedOperations.elementAtOrNull(index + 1);
+      final fq.Operation? nextOp =
+          denormalizedOperations.elementAtOrNull(index + 1);
       // a basic check to avoid process retain or delete operations
       if (!operation.isInsert || nextOp != null && !nextOp.isInsert) {
-        final type = nextOp != null && nextOp.isInsert ? nextOp.key : operation.key;
+        final type =
+            nextOp != null && nextOp.isInsert ? nextOp.key : operation.key;
         throw StateError(
           'Operation at ${nextOp?.isInsert == false ? index + 1 : index} '
           'is "$type" type and parseDelta() only accepts "insert" types',
@@ -69,11 +71,10 @@ class RichTextParser {
         startParagraphNewLineChecking = operation.data != '\n';
       }
 
-      if(operation.data == '\n' && !startParagraphNewLineChecking) {
+      if (operation.data == '\n' && !startParagraphNewLineChecking) {
         _document.insert(Paragraph.newLine());
         continue;
       }
-
 
       ignoreNewLine = operation.data == '\n' && operation.attributes == null;
       hasNextOp = nextOp != null;
@@ -84,10 +85,15 @@ class RichTextParser {
       // "Paragraph 1, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, Paragraph 2"
       //
       // "Paragraph 1, \n, \n, \n, Paragraph 2" => should be parsed to be => "Paragraph 1, \n, \n, Paragraph 2"
-      if (operation.data != '\n' && nextOp?.data == '\n' && nextOp?.attributes == null) {
+      if (operation.data != '\n' &&
+          nextOp?.data == '\n' &&
+          nextOp?.attributes == null) {
         ignoreNewLineAtIndex = index + 1;
       }
-      if (operation.data == '\n' && operation.attributes == null && nextOp != null && nextOp.data != '\n') {
+      if (operation.data == '\n' &&
+          operation.attributes == null &&
+          nextOp != null &&
+          nextOp.data != '\n') {
         ignoreNewLine = true;
         ignoreNewLineAtIndex = null;
       }
@@ -100,7 +106,9 @@ class RichTextParser {
       // When verify that the next operation has not the same attrs, then will ignore that new line since
       // that one is the definitive (it was the unique insert with the block attribute, but
       // denormalizer makes this to do more easy store on it)
-      if (nextOp != null && mapEquality(operation.attributes, nextOp.attributes) || !hasNextOp) {
+      if (nextOp != null &&
+              mapEquality(operation.attributes, nextOp.attributes) ||
+          !hasNextOp) {
         ignoreNewLine = false;
       }
 
@@ -147,7 +155,8 @@ class RichTextParser {
         _document.updateLast(lastPr);
         _startNewParagraph();
       } else if (operation.data == '\n') {
-        lastBlockAttributesKnown = operation.attributes == null ? null : {...?operation.attributes};
+        lastBlockAttributesKnown =
+            operation.attributes == null ? null : {...?operation.attributes};
       }
     }
     // remove last if needed
@@ -220,7 +229,9 @@ class RichTextParser {
       _document.updateParagraph(lastPr);
       return;
     }
-    if (lastPr != null && lastPr.lines.isNotEmpty && lastPr.lines.first.isEmpty) {
+    if (lastPr != null &&
+        lastPr.lines.isNotEmpty &&
+        lastPr.lines.first.isEmpty) {
       lastPr
         ..updateLine(
             0,
@@ -260,7 +271,8 @@ class RichTextParser {
         if (nextIsBlockLevelAttributes) {
           paragraph.seal();
         }
-        _document.updateParagraph(paragraph..blockAttributes = operation.attributes);
+        _document
+            .updateParagraph(paragraph..blockAttributes = operation.attributes);
         return;
       }
       // if the last added paragraph is already a block or line-break element
@@ -306,7 +318,10 @@ class RichTextParser {
           paragraph.last?.seal();
           needNewParagraph = true;
         }
-        if (paragraph.isEmbed || paragraph.isNewLine || paragraph.isSealed || !hasNextOp) {
+        if (paragraph.isEmbed ||
+            paragraph.isNewLine ||
+            paragraph.isSealed ||
+            !hasNextOp) {
           final Paragraph newLine = Paragraph.newLine();
           _document.insert(newLine);
           return;
@@ -322,7 +337,9 @@ class RichTextParser {
         _document.updateParagraphSafe(paragraph..seal());
       }
       // next is only a new line
-      if (!nextIsBlockLevelAttributes && nextOperation?.data == '\n' && !paragraph.isTextInsert) {
+      if (!nextIsBlockLevelAttributes &&
+          nextOperation?.data == '\n' &&
+          !paragraph.isTextInsert) {
         paragraph.seal();
         _document.updateParagraph(paragraph);
         return;
@@ -348,7 +365,8 @@ class RichTextParser {
       paragraph = Paragraph.base();
       _document.insert(paragraph);
     }
-    if (paragraph.isEmpty || (paragraph.last!.isSealed && paragraph.last!.isNotEmpty)) {
+    if (paragraph.isEmpty ||
+        (paragraph.last!.isSealed && paragraph.last!.isNotEmpty)) {
       paragraph.insert(Line(
         fragments: [],
       ));

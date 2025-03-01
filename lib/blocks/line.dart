@@ -32,7 +32,8 @@ class Line {
         _sealed = fragments.isEmpty
             ? false
             : fragments.isNotEmpty && fragments.length == 1
-                ? fragments.first.data == '\n' || fragments.first.data is Map<String, dynamic>
+                ? fragments.first.data == '\n' ||
+                    fragments.first.data is Map<String, dynamic>
                 : false,
         id = nanoid(10);
 
@@ -69,35 +70,40 @@ class Line {
 
   void removeFragment(TextFragment fragment) {
     if (_sealed) {
-      throw StateError('Element of type ${fragment.runtimeType} cannot be removed when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be removed when $runtimeType is sealed');
     }
     _fragments.remove(fragment);
   }
 
   void removeFragmentAt(int index) {
     if (_sealed) {
-      throw StateError('Cannot make remove operation when $runtimeType is sealed');
+      throw StateError(
+          'Cannot make remove operation when $runtimeType is sealed');
     }
     _fragments.removeAt(index);
   }
 
   void removeFragmentWhere({required bool Function(TextFragment) where}) {
     if (_sealed) {
-      throw StateError('Cannot make remove operation when $runtimeType is sealed');
+      throw StateError(
+          'Cannot make remove operation when $runtimeType is sealed');
     }
     _fragments.removeWhere(where);
   }
 
   void updateFragment(int index, TextFragment fragment) {
     if (_sealed) {
-      throw StateError('Element of type ${fragment.runtimeType} cannot be updated when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be updated when $runtimeType is sealed');
     }
     _fragments[index] = fragment;
   }
 
   void addFragment(TextFragment fragment) {
     if (_sealed) {
-      throw StateError('Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
     if (fragment.data is String || fragment.data is Map) {
       if (fragment.data is String) {
@@ -142,8 +148,9 @@ class Line {
       return;
     }
     final int lastIndex = _fragments.length - 1;
-    final bool areAttributesEquals = mapEquality(previous.attributes, fragment.attributes) ||
-        (previous.attributes == null && fragment.attributes == null);
+    final bool areAttributesEquals =
+        mapEquality(previous.attributes, fragment.attributes) ||
+            (previous.attributes == null && fragment.attributes == null);
     if (areAttributesEquals) {
       final String previousData = previous.data as String;
       final String newData = '$previousData${fragment.data}';
@@ -159,7 +166,8 @@ class Line {
   /// Creates a deep copy of the current [Line] instance.
   Line get clone => Line(fragments: <TextFragment>[..._fragments]);
 
-  List<TextFragment> get fragments => List<TextFragment>.unmodifiable(_fragments);
+  List<TextFragment> get fragments =>
+      List<TextFragment>.unmodifiable(_fragments);
   @visibleForTesting
   List<TextFragment> get rawFragments => _fragments;
   int get length => _fragments.length;
@@ -191,7 +199,8 @@ class Line {
   String toPrettyString({String indent = ' '}) {
     final StringBuffer buffer = StringBuffer(indent);
     final String rawFragments = _fragments.map((TextFragment fragment) {
-      buffer.writeln('${'$indent  '}${fragment.toString().replaceAll('\n', '¶')},');
+      buffer.writeln(
+          '${'$indent  '}${fragment.toString().replaceAll('\n', '¶')},');
       final String str = '$buffer';
       buffer
         ..clear()
@@ -206,7 +215,8 @@ class Line {
 
   TextFragment operator [](int index) => _fragments[index];
 
-  void operator []=(int index, TextFragment fragment) => _fragments[index] = fragment;
+  void operator []=(int index, TextFragment fragment) =>
+      _fragments[index] = fragment;
 
   @override
   bool operator ==(covariant Line other) {
