@@ -19,10 +19,14 @@ class Document {
     final Paragraph? lastParagraph = paragraphs.lastOrNull;
     if (lastParagraph != null) {
       if (lastParagraph.isEmpty || (lastParagraph.last?.isEmpty ?? false)) {
+        if (lastParagraph.isSealed) {
+          lastParagraph.unseal();
+        }
         lastParagraph.insertAll(paragraph.lines);
         lastParagraph.setType(paragraph.type);
         lastParagraph.blockAttributes = lastParagraph.blockAttributes;
-        if((lastParagraph.isBlock || lastParagraph.isEmbed || lastParagraph.isNewLine) && !lastParagraph.isSealed) {
+        if ((lastParagraph.isBlock || lastParagraph.isEmbed || lastParagraph.isNewLine) &&
+            !lastParagraph.isSealed) {
           lastParagraph.seal(sealLines: true);
         }
         updateLast(paragraph);
