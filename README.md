@@ -184,6 +184,21 @@ class Line {
 }
 ```
 
+### TextFragment
+
+A `TextFragment` represents a segment of content within a `Paragraph`. This content can be a simple String of characters or a more complex structure such as an embed.
+```dart
+class Line{
+  Object data;
+  Map<String, dynamic>? attributes;
+
+  Line({
+    this.data,
+    this.attributes,
+  });
+}
+```
+
 ### Paragraph with lines example:
 
 ```dart

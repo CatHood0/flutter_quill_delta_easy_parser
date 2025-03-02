@@ -6,11 +6,11 @@ There has been some confusion about why `Paragraph` contains a List of `Line` ob
 
 It is because of these drawbacks that the `Line` class has been redesigned so that instead of containing a portion of the text within the `Paragraph`, it contains a new class called `TextFragment`.
 
-#### `TextFragment`
+#### TextFragment
 
 Summarize: it's practically the same as `Line` was before, but with another name.
 
-#### `Line` Redesign
+#### Line Redesign
 
 `Line` is now able to behave as what it is, a line completely separate from its siblings.
 
