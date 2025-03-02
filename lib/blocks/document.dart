@@ -7,8 +7,12 @@ class Document {
   final List<Paragraph> paragraphs;
 
   Document({
-    required this.paragraphs,
-  });
+    required Iterable<Paragraph> paragraphs,
+  }) : paragraphs = <Paragraph>[] {
+    for (var pr in paragraphs) {
+      insert(pr);
+    }
+  }
 
   /// Inserts a new [paragraph] into the document.
   void insert(Paragraph paragraph) {
