@@ -37,8 +37,8 @@ class DocumentParser {
   /// * [returnNoSealedCopies] indicates if will need to return a deep copy of the elements to avoid return a [Paragraph]s that cannot add more elements
   /// * [ignoreAllNewLines] indicates that all the new lines with no block-level target to apply will be ignored
   ///
-  Document? parseDelta(
-    fq.Delta delta, {
+  Document? parseDelta({
+    required fq.Delta delta,
     bool returnNoSealedCopies = false,
     bool ignoreAllNewLines = false,
   }) {

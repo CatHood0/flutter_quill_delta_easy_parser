@@ -40,7 +40,7 @@ A name change for the parser has been planned for several versions, however, it 
 
 ```diff
 - RichTextParser().parseDelta(delta);
-+ DocumentParser().parseDelta(delta);
++ DocumentParser().parseDelta(delta: delta);
 ```
 
 **If you need more information about the changes, [check migration guide](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md)**

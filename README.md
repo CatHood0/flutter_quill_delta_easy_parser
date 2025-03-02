@@ -27,7 +27,12 @@ void main() {
     ..insert(' to a website')
     ..insert('\n');
 
-final Document? document = DocumentParser().parseDelta(delta);
+final Document? document = DocumentParser()
+    .parseDelta(
+      delta: delta,
+      returnNoSealedCopies: false,
+      ignoreAllNewLines: false,
+    );
 debugPrint(document.toPrettyString());
 }
 ```
@@ -92,7 +97,7 @@ final Delta delta = Delta()
   ..insert('We are writing some ')
   ..insert('bolded text',{'bold': true})
   ..insert('\n');
-final Document? parsedDocument = DocumentParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta);
+final Document? parsedDocument = DocumentParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta: delta);
 /* 
 it's equal, to build a document manually like this:
 final Document document = Document(paragraphs: [
@@ -231,6 +236,20 @@ final Paragraph bulletListParagraph = Paragraph(
   blockAttributes: {"list": "bullet"},
   type: ParagraphType.block,
 );
+```
+
+## MergerBuilder
+
+`MergerBuilder` is an abstract class that allows us to implement our own logic to join different paragraphs. By default, `DocumentParser` implements `CommonMergerBuilder`, which focuses on joining paragraphs that maintain the same types, or the same block-attributes.
+
+Currently, only **3** implementations are available:
+
+* `NoMergerBuilder`: does not execute any code and returns the paragraphs as they are created.
+* `BlockMergerBuilder`: joins all paragraphs that contain the same block-attributes (in a row, from the first to the last, not randomly).
+* `CommonMergerBuilder` (we already described it above).
+
+```dart
+final parser = DocumentParser(mergerBuilder: <the-merger-that-you-want>);
 ```
 
 See the test folder for detailed usage examples and test cases.

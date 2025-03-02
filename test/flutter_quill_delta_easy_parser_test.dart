@@ -15,7 +15,7 @@ void main() {
       Paragraph.newLine()
     ]);
 
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -33,7 +33,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -73,7 +73,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -110,7 +110,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -131,7 +131,7 @@ void main() {
       Paragraph.newLine()
     ]);
 
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -202,14 +202,15 @@ void main() {
       ),
       Paragraph.newLine(),
     ]);
-    final Document? parsedDocument = DocumentParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
   test('Should handle empty Delta', () {
     final Delta emptyDelta = Delta();
 
-    final Document? parsedDocument = DocumentParser().parseDelta(emptyDelta);
+    final Document? parsedDocument =
+        DocumentParser().parseDelta(delta: emptyDelta);
 
     expect(parsedDocument, isNull);
   });
@@ -225,7 +226,7 @@ void main() {
     ]);
 
     final Document? parsedDocument =
-        DocumentParser().parseDelta(deltaWithNewlines);
+        DocumentParser().parseDelta(delta: deltaWithNewlines);
     _execExpects(parsedDocument, expectedDocument);
   });
 }
