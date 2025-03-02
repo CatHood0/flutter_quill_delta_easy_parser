@@ -46,7 +46,7 @@ class RichTextParser {
     bool ignoreAllNewLines = false,
   }) {
     return DocumentParser(mergerBuilder: mergerBuilder).parseDelta(
-      delta,
+      delta: delta,
       returnNoSealedCopies: returnNoSealedCopies,
       ignoreAllNewLines: ignoreAllNewLines,
     );
