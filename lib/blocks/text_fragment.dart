@@ -7,7 +7,7 @@ class TextFragment {
   /// Optional attributes associated with the line data.
   Map<String, dynamic>? attributes;
 
-  /// Constructs a [Line] instance with optional initial [data] and [attributes].
+  /// Constructs a [TextFragment] instance with optional initial [data] and [attributes].
   TextFragment({
     required this.data,
     this.attributes,
@@ -28,7 +28,7 @@ class TextFragment {
     attributes?.addAll(attrs);
   }
 
-  /// Creates a deep copy of the current [Line] instance.
+  /// Creates a deep copy of the current [TextFragment] instance.
   TextFragment get clone => TextFragment(data: data, attributes: attributes);
 
   /// Clears the data and attributes of the line, setting them to `null`.

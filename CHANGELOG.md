@@ -2,13 +2,21 @@
 
 ### Breaking changes
 
-There has been some confusion about why `Paragraph` contains a List of `Line` objects that are really just a portion of text. As mentioned, a `Line` should represent different lines of a `Paragraph`.
-
-It is because of these drawbacks that the `Line` class has been redesigned so that instead of containing a portion of the text within the `Paragraph`, it contains a new class called `TextFragment`.
+`Line` class has been redesigned so that instead of containing a portion of the text within the `Paragraph`, it contains a new class called `TextFragment`.
 
 #### TextFragment
 
-Summarize: it's practically the same as `Line` was before, but with another name.
+```dart
+class TextFragment {
+  Object data;
+  Map<String, dynamic>? attributes;
+
+  TextFragment({
+    required this.data,
+    this.attributes,
+  });
+}
+```
 
 #### Line Redesign
 
@@ -23,13 +31,16 @@ class Line {
   Line({
     required List<TextFragment> fragments,
   });
-
-  // General methods
-  List<TextFragment> get fragments;
-  void removeFragment(TextFragment fragment);
-  void addFragment(TextFragment fragment);
-  void updateFragment(int index, TextFragment fragment);
 }
+```
+
+#### RichTextParser deprecation
+
+A name change for the parser has been planned for several versions, however, it was in this release that it was decided to deprecate `RichTextParser` and replace it with `DocumentParser`, which is more convenient for the package. However, using `RichTextParser` should still return a usable `Document`, in case for some reason it cannot be renamed.
+
+```diff
+- RichTextParser().parseDelta(delta);
++ DocumentParser().parseDelta(delta);
 ```
 
 **If you need more information about the changes, [check migration guide](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md)**
@@ -37,7 +48,7 @@ class Line {
 * Feat: added support for create accumulator algorithms. 
 * Fix: issues where the first new lines of the `Delta` are being remove unnecessarily.
 * Fix: improved and reorganized general internal API to be have a standard of how it should work. 
-* Fix: issues where the `Paragraph`s with only a new-line is considered a `ParagraphType.block`.  
+* Fix: issues where the paragraphs with only a new-line is considered a `ParagraphType.block`.  
 * Fix: `toPrettyString()` bad string return.
 * Chore: added `toPrettyString()` for `Paragraph` class.
 * Chore(test): improve expect messages to be more readable.
