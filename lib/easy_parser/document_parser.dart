@@ -46,8 +46,6 @@ class DocumentParser {
     _document.clean();
     final List<fq.Operation> denormalizedOperations =
         delta.denormalize().operations;
-    bool hasNextOp = true;
-    int countForwardNewLines = 0;
     // sometimes, we can find only new lines at the start of the Delta, then to avoid remove them, we
     // will need to add a verification
     bool startParagraphNewLineChecking = false;
@@ -72,9 +70,12 @@ class DocumentParser {
         startParagraphNewLineChecking = operation.data != '\n';
       }
 
-      if (operation.data == '\n' && !startParagraphNewLineChecking) {
+      if (operation.data == '\n' &&
+          !startParagraphNewLineChecking &&
+          !ignoreAllNewLines) {
         _document
             .insert(Paragraph.newLine(blockAttributes: operation.attributes));
+        index++;
         continue;
       }
 
@@ -83,71 +84,24 @@ class DocumentParser {
       final bool isBlankLine =
           previousOperation?.data == '\n' && operation.data == '\n';
 
-      operation.data == '\n'
-          ? countForwardNewLines++
-          : countForwardNewLines = 0;
-      hasNextOp = nextOp != null;
+      final bool hasNextOp = nextOp != null;
       final bool isLastInsertion = isParagraphBreak && !hasNextOp;
 
       // updates here
       index++;
 
-      if (operation.data is Map) {
-        _document.insert(Paragraph.fromEmbed(operation));
+      if (operation.data is! String) {
+        _applyEmbed(operation: operation);
       } else if (operation.data == '\n') {
-        Paragraph? lastParagraph = _document.getLast();
-        if (lastParagraph == null) {
-          lastParagraph = Paragraph.withLine();
-          _document.insert(lastParagraph);
-        }
-        if (isBlankLine) {
-          if (lastParagraph.shouldBreakToNext) {
-            lastParagraph.removeLastLine();
-            lastParagraph.seal(sealLines: true);
-            _document.updateLast(lastParagraph);
-          }
-          if (!ignoreAllNewLines) {
-            _document.insert(
-                Paragraph.newLine(blockAttributes: operation.attributes));
-          }
-        } else if (isLastInsertion && operation.attributes == null) {
-          if (!ignoreAllNewLines) {
-            _document.insert(
-                Paragraph.newLine(blockAttributes: operation.attributes));
-          }
-        } else if (isParagraphBreak) {
-          if (lastParagraph.length > 1 &&
-              operation.attributes != null &&
-              !lastParagraph.shouldBreakToNext) {
-            lastParagraph.unseal();
-            final Line lastLine = lastParagraph.removeLastLine();
-            lastParagraph.seal(sealLines: true);
-            _document.updateLast(lastParagraph);
-            _document.insert(
-              Paragraph(
-                lines: [lastLine],
-                blockAttributes: operation.attributes,
-                type: ParagraphType.block,
-              ),
-            );
-            continue;
-          }
-          if (operation.attributes != null) {
-            lastParagraph.blockAttributes = operation.attributes;
-            if (lastParagraph.isTextInsert) {
-              lastParagraph.setType(ParagraphType.block);
-            }
-            lastParagraph.seal(sealLines: true);
-            _document.updateParagraph(lastParagraph);
-            _startNewParagraph();
-            continue;
-          }
-          if (!ignoreAllNewLines) {
-            lastParagraph.insertEmptyLine();
-          }
-        }
+        _applyNewLine(
+          operation: operation,
+          isBlankLine: isBlankLine,
+          ignoreAllNewLines: ignoreAllNewLines,
+          isParagraphBreak: isParagraphBreak,
+          isLastInsertion: isLastInsertion,
+        );
       } else {
-        _insertText(operation, hasNextOp);
+        _applyText(operation, hasNextOp);
       }
     }
     if (mergerBuilder.enabled) {
@@ -170,11 +124,75 @@ class DocumentParser {
     return _document;
   }
 
+  void _applyEmbed({required fq.Operation operation}) {
+    _document.insert(Paragraph.fromEmbed(operation));
+  }
+
+  void _applyNewLine({
+    required fq.Operation operation,
+    required bool isBlankLine,
+    required bool ignoreAllNewLines,
+    required bool isParagraphBreak,
+    required bool isLastInsertion,
+  }) {
+    Paragraph? lastParagraph = _document.getLast();
+    if (lastParagraph == null) {
+      lastParagraph = Paragraph.withLine();
+      _document.insert(lastParagraph);
+    }
+    if (isBlankLine) {
+      if (lastParagraph.shouldBreakToNext) {
+        lastParagraph.removeLastLine();
+        lastParagraph.seal(sealLines: true);
+        _document.updateLast(lastParagraph);
+      }
+      if (!ignoreAllNewLines) {
+        _document
+            .insert(Paragraph.newLine(blockAttributes: operation.attributes));
+      }
+    } else if (isLastInsertion && operation.attributes == null) {
+      if (!ignoreAllNewLines) {
+        _document
+            .insert(Paragraph.newLine(blockAttributes: operation.attributes));
+      }
+    } else if (isParagraphBreak) {
+      if (lastParagraph.length > 1 &&
+          operation.attributes != null &&
+          !lastParagraph.shouldBreakToNext) {
+        lastParagraph.unseal();
+        final Line lastLine = lastParagraph.removeLastLine();
+        lastParagraph.seal(sealLines: true);
+        _document.updateLast(lastParagraph);
+        _document.insert(
+          Paragraph(
+            lines: [lastLine],
+            blockAttributes: operation.attributes,
+            type: ParagraphType.block,
+          ),
+        );
+        return;
+      }
+      if (operation.attributes != null) {
+        lastParagraph.blockAttributes = operation.attributes;
+        if (lastParagraph.isTextInsert) {
+          lastParagraph.setType(ParagraphType.block);
+        }
+        lastParagraph.seal(sealLines: true);
+        _document.updateParagraph(lastParagraph);
+        _startNewParagraph();
+        return;
+      }
+      if (!ignoreAllNewLines) {
+        lastParagraph.insertEmptyLine();
+      }
+    }
+  }
+
   /// Starts a new paragraph in the document.
   void _startNewParagraph() => _document.insert(Paragraph.base());
 
   /// Inserts text into the document.
-  void _insertText(fq.Operation operation, bool hasNextOp) {
+  void _applyText(fq.Operation operation, bool hasNextOp) {
     Paragraph? paragraph = _document.getLast();
     if (paragraph == null || paragraph.isSealed) {
       paragraph = Paragraph.base();
