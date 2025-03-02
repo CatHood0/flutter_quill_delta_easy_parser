@@ -15,7 +15,7 @@ void main() {
       Paragraph.newLine()
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -33,7 +33,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -73,7 +73,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -110,7 +110,7 @@ void main() {
       Paragraph.newLine(),
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -131,7 +131,7 @@ void main() {
       Paragraph.newLine()
     ]);
 
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
@@ -202,14 +202,14 @@ void main() {
       ),
       Paragraph.newLine(),
     ]);
-    final Document? parsedDocument = RichTextParser().parseDelta(delta);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta);
     _execExpects(parsedDocument, expectedDocument);
   });
 
   test('Should handle empty Delta', () {
     final Delta emptyDelta = Delta();
 
-    final Document? parsedDocument = RichTextParser().parseDelta(emptyDelta);
+    final Document? parsedDocument = DocumentParser().parseDelta(emptyDelta);
 
     expect(parsedDocument, isNull);
   });
@@ -225,7 +225,7 @@ void main() {
     ]);
 
     final Document? parsedDocument =
-        RichTextParser().parseDelta(deltaWithNewlines);
+        DocumentParser().parseDelta(deltaWithNewlines);
     _execExpects(parsedDocument, expectedDocument);
   });
 }
