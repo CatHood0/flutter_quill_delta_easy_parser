@@ -1,7 +1,9 @@
+import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 import 'package:meta/meta.dart';
 
 /// [CommonMergerBuilder] is focused in merge paragraphs with the same block-attributes or if them are inlines
+/// and accept also merge embeds if [mergeEmbeds] param is true
 @immutable
 class CommonMergerBuilder extends MergerBuilder {
   const CommonMergerBuilder({this.mergeEmbeds = false});
@@ -50,9 +52,6 @@ class CommonMergerBuilder extends MergerBuilder {
     required Paragraph paragraph,
     required Paragraph nextParagraph,
   }) {
-    if (paragraph.isNewLine || nextParagraph.isNewLine) {
-      return false;
-    }
     return paragraph.isTextInsert && nextParagraph.isTextInsert ||
         (paragraph.isBlock) &&
             nextParagraph.isBlock &&
@@ -69,7 +68,4 @@ class CommonMergerBuilder extends MergerBuilder {
               true,
             );
   }
-
-  @override
-  List<String>? get keysToAccumulate => null;
 }

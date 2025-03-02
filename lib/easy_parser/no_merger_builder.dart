@@ -9,9 +9,6 @@ class NoMergeBuilder extends MergerBuilder {
   List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) => <Paragraph>[...paragraphs];
 
   @override
-  List<String>? get keysToAccumulate => null;
-
-  @override
   bool get enabled => false;
 
   @override

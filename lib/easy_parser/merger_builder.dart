@@ -6,11 +6,8 @@ import 'package:meta/meta.dart';
 abstract class MergerBuilder {
   const MergerBuilder();
 
-  /// Indicates the block-level keys to take in account to accumulate
-  List<String>? get keysToAccumulate;
-
+  bool get enabled;
   /// Decides if we will merge the current Pr ↓ with the nextParagraph
-  bool get enabled => keysToAccumulate != null && keysToAccumulate!.isNotEmpty;
   bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph});
 
   Iterable<Paragraph> buildAccumulation(List<Paragraph> paragraphs);
