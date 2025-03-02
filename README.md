@@ -2,6 +2,10 @@
 
 A Dart package designed to transform `Flutter Quill` content into a structured document format, making it easier to handle and convert for various use cases like generating `Word` or `PDF` documents.
 
+> [!TIP]
+>
+> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md).
+
 ## Usage Example
 
 ```dart
@@ -253,10 +257,6 @@ final parser = DocumentParser(mergerBuilder: <the-merger-that-you-want>);
 ```
 
 See the test folder for detailed usage examples and test cases.
-
-> [!TIP]
->
-> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md).
 
 ## License
 
