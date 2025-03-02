@@ -25,7 +25,8 @@ class CommonMergerBuilder extends MergerBuilder {
         result.add(curParagraph);
         break;
       }
-      if (canMergeBothParagraphs(paragraph: curParagraph, nextParagraph: nextParagraph)) {
+      if (canMergeBothParagraphs(
+          paragraph: curParagraph, nextParagraph: nextParagraph)) {
         final Paragraph paragraphResult = Paragraph(
           lines: <Line>[
             ...curParagraph.lines,

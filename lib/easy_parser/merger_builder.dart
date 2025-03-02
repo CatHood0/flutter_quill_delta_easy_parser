@@ -7,8 +7,10 @@ abstract class MergerBuilder {
   const MergerBuilder();
 
   bool get enabled;
+
   /// Decides if we will merge the current Pr ↓ with the nextParagraph
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph});
+  bool canMergeBothParagraphs(
+      {required Paragraph paragraph, required Paragraph nextParagraph});
 
   Iterable<Paragraph> buildAccumulation(List<Paragraph> paragraphs);
 }

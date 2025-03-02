@@ -6,11 +6,14 @@ import 'package:meta/meta.dart';
 class NoMergeBuilder extends MergerBuilder {
   const NoMergeBuilder();
   @override
-  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) => <Paragraph>[...paragraphs];
+  List<Paragraph> buildAccumulation(List<Paragraph> paragraphs) =>
+      <Paragraph>[...paragraphs];
 
   @override
   bool get enabled => false;
 
   @override
-  bool canMergeBothParagraphs({required Paragraph paragraph, required Paragraph nextParagraph}) => false;
+  bool canMergeBothParagraphs(
+          {required Paragraph paragraph, required Paragraph nextParagraph}) =>
+      false;
 }
