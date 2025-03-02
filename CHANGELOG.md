@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Fix: typo in README.
+
 ## 1.1.0
 
 ### Breaking changes
