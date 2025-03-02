@@ -11,10 +11,19 @@ class Document {
   });
 
   /// Inserts a new [paragraph] into the document.
-  void insert(Paragraph paragraph, {bool updateIfExist = false}) {
-    if (exist(paragraph) && updateIfExist) {
-      updateParagraph(paragraph);
-      return;
+  void insert(Paragraph paragraph) {
+    final Paragraph? lastParagraph = paragraphs.lastOrNull;
+    if (lastParagraph != null) {
+      if (lastParagraph.isEmpty || (lastParagraph.last?.isEmpty ?? false)) {
+        lastParagraph.insertAll(paragraph.lines);
+        lastParagraph.setType(paragraph.type);
+        lastParagraph.blockAttributes = lastParagraph.blockAttributes;
+        if((lastParagraph.isBlock || lastParagraph.isEmbed || lastParagraph.isNewLine) && !lastParagraph.isSealed) {
+          lastParagraph.seal(sealLines: true);
+        }
+        updateLast(paragraph);
+        return;
+      }
     }
     paragraphs.add(paragraph);
   }
@@ -41,8 +50,7 @@ class Document {
   /// Returns a [bool] value that indicates if the [Paragraph] exists into the [Document].
   bool exist(Paragraph pr) {
     if (paragraphs.isEmpty) return false;
-    return paragraphs.contains(pr) ||
-        paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
+    return paragraphs.contains(pr) || paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
   }
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
@@ -54,6 +62,25 @@ class Document {
     paragraphs[paragraphs.length - 1] = paragraph;
   }
 
+  Paragraph? getParagraph(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    return paragraphs.firstWhereOrNull((pr) => pr.id == paragraph.id || pr == paragraph);
+  }
+
+  Paragraph? getParagraphBefore(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    final int index = paragraphs.indexWhere((pr) => pr.id == paragraph.id || pr == paragraph);
+    if (index <= 0) return null;
+    return paragraphs.elementAt(index - 1);
+  }
+
+  Paragraph? getParagraphAfter(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    final int index = paragraphs.indexWhere((pr) => pr.id == paragraph.id || pr == paragraph);
+    if (index < 0 && (index + 1) >= paragraphs.length) return null;
+    return paragraphs.elementAt(index + 1);
+  }
+
   /// Update a [paragraph] into the document validating to make more safe the operation.
   void updateParagraph(Paragraph paragraph) {
     int lastIndex = paragraphs.lastIndexOf(paragraph);
@@ -62,8 +89,7 @@ class Document {
       lastIndex = paragraphs.indexWhere((pr) => pr.id == paragraph.id);
     }
     if (paragraphs.isEmpty || lastIndex == -1) {
-      throw StateError(
-          'Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
+      throw StateError('Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
     }
     paragraphs[lastIndex] = paragraph;
   }
@@ -79,8 +105,7 @@ class Document {
   }
 
   /// Ensures correct formatting of paragraphs in the document.
-  @Deprecated(
-      'ensureCorrectFormat is no longer used and will be removed in future releases')
+  @Deprecated('ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
     return this;
   }

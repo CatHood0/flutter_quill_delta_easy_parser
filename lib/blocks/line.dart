@@ -182,7 +182,7 @@ class Line {
         (TextFragment e) => e.data is! String ? 1 : e.data.toString().length,
       )
       .fold(0, (int a, int b) => a + b);
-  bool get isNewLine => _fragments.single.data == '\n';
+  bool get isNewLine => isSingle ? _fragments.single.data == '\n' : false;
   bool get isSealed => _sealed;
   bool get isEmbedFragment => _fragments.single.data is Map<String, dynamic>;
   bool get isTextInsert => _fragments.isEmpty || _fragments.first.data != '\n';

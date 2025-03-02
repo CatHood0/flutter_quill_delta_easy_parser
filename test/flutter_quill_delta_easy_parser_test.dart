@@ -52,7 +52,7 @@ void main() {
     ]);
 
     final Document expectedDocument = Document(paragraphs: [
-      Paragraph(
+      Paragraph.sealed(
         lines: [
           Line.fromData(
             data:
@@ -89,7 +89,7 @@ void main() {
     ]);
 
     final Document expectedDocument = Document(paragraphs: [
-      Paragraph(
+      Paragraph.sealed(
         lines: [
           Line(
             fragments: [
@@ -121,7 +121,7 @@ void main() {
       ..insert('\n');
 
     final Document expectedDocument = Document(paragraphs: [
-      Paragraph(
+      Paragraph.sealed(
         lines: [
           Line.fromData(data: "Header title"),
         ],
@@ -156,7 +156,7 @@ void main() {
       ..insert('\n');
 
     final Document expectedDocument = Document(paragraphs: [
-      Paragraph(
+      Paragraph.sealed(
         lines: [
           Line(
             fragments: [
