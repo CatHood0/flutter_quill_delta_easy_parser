@@ -78,7 +78,7 @@ Document:
 
 Transforms the content of a **Quill JS** editor and **Flutter Quill** editors into an easy-to-work paragraph format.
 
-The output of both editors is `Delta` format. While the `Delta` format works great, but, when you need to use it to generate other types of documents (e.g., Word or PDF) from Quill's contents you will probably need to do more work to format the paragraphs correctly without losses the styles.
+The output of both editors is `Delta` format. While the `Delta` format works great, but, when you need to use it to generate other types of documents (e.g., Word or PDF) from Quill's contents, you probably will need to do more work to format the paragraphs correctly without losses the styles.
 
 ## Easy example usage
 
