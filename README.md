@@ -27,7 +27,7 @@ void main() {
     ..insert(' to a website')
     ..insert('\n');
 
-final Document? document = RichTextParser().parseDelta(delta);
+final Document? document = DocumentParser().parseDelta(delta);
 debugPrint(document.toPrettyString());
 }
 ```
@@ -74,7 +74,7 @@ Document:
         Type: inline 
 ```
 
-## What Does `RichTextParser`?
+## What Does `DocumentParser`?
 
 Transforms the content of a **Quill JS** editor and **Flutter Quill** editors into an easy-to-work paragraph format.
 
@@ -92,7 +92,7 @@ final Delta delta = Delta()
   ..insert('We are writing some ')
   ..insert('bolded text',{'bold': true})
   ..insert('\n');
-final Document? parsedDocument = RichTextParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta);
+final Document? parsedDocument = DocumentParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta);
 /* 
 it's equal, to build a document manually like this:
 final Document document = Document(paragraphs: [
@@ -237,7 +237,7 @@ See the test folder for detailed usage examples and test cases.
 
 > [!TIP]
 >
-> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0]().
+> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md).
 
 ## License
 
