@@ -21,11 +21,11 @@ class DocumentParser {
   ///
   /// ```dart
   /// // to ignore merging behavior
-  /// final parser1 = RichTextParser(mergerBuilder: NoMergeBuilder())
+  /// final parser1 = DocumentParser(mergerBuilder: NoMergeBuilder())
   /// // to merge [Paragraph]s if them can do it
-  /// final parser2 = RichTextParser(mergerBuilder: CommonMergerBuilder())
+  /// final parser2 = DocumentParser(mergerBuilder: CommonMergerBuilder())
   /// // to only merge blocks
-  /// final parser3 = RichTextParser(mergerBuilder: BlockMergerBuilder())
+  /// final parser3 = DocumentParser(mergerBuilder: BlockMergerBuilder())
   /// ```
   final MergerBuilder mergerBuilder;
   final Document _document = Document(

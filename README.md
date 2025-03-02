@@ -4,7 +4,7 @@ A Flutter package designed to transform `Flutter Quill` content into a structure
 
 > [!TIP]
 >
-> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/v106_to_v110.md).
+> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.2](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/v106_to_v110.md).
 
 ## Usage Example
 
