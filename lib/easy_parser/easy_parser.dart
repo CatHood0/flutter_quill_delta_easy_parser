@@ -196,7 +196,7 @@ class RichTextParser {
     }
     paragraph.insertTextFragment(
       TextFragment(
-        data: operation.data,
+        data: operation.data!,
         attributes: operation.attributes,
       ),
     );

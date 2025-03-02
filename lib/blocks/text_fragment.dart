@@ -2,21 +2,16 @@ import 'package:collection/collection.dart';
 
 class TextFragment {
   /// The main data object associated with the line.
-  Object? data;
+  Object data;
 
   /// Optional attributes associated with the line data.
   Map<String, dynamic>? attributes;
 
   /// Constructs a [Line] instance with optional initial [data] and [attributes].
   TextFragment({
-    this.data,
+    required this.data,
     this.attributes,
   });
-
-  /// Sets the data object of the line to [data].
-  void setData(Object? data) {
-    this.data = data;
-  }
 
   /// Sets the attributes of the line to [attrs].
   ///
@@ -38,13 +33,11 @@ class TextFragment {
 
   /// Clears the data and attributes of the line, setting them to `null`.
   void cleanLine() {
-    data = null;
     attributes = null;
   }
 
   @override
   String toString() {
-    data ??= null;
     attributes ??= null;
     return 'TextFragment: "${data is String ? '$data'.replaceAll('\n', '\\n') : data}"${attributes == null ? '' : ', attributes: $attributes'}';
   }
