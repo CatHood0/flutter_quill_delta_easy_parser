@@ -7,23 +7,61 @@ class Document {
   final List<Paragraph> paragraphs;
 
   Document({
-    required this.paragraphs,
-  });
+    required Iterable<Paragraph> paragraphs,
+  }) : paragraphs = <Paragraph>[] {
+    for (var pr in paragraphs) {
+      insert(pr);
+    }
+  }
 
   /// Inserts a new [paragraph] into the document.
   void insert(Paragraph paragraph) {
+    final Paragraph? lastParagraph = paragraphs.lastOrNull;
+    if (lastParagraph != null) {
+      if (lastParagraph.isEmpty || (lastParagraph.last?.isEmpty ?? false)) {
+        if (lastParagraph.isSealed) {
+          lastParagraph.unseal();
+        }
+        lastParagraph.insertAll(paragraph.lines);
+        lastParagraph.setType(paragraph.type);
+        lastParagraph.blockAttributes = lastParagraph.blockAttributes;
+        if ((lastParagraph.isBlock ||
+                lastParagraph.isEmbed ||
+                lastParagraph.isNewLine) &&
+            !lastParagraph.isSealed) {
+          lastParagraph.seal(sealLines: true);
+        }
+        updateLast(paragraph);
+        return;
+      }
+    }
+    paragraphs.add(paragraph);
+  }
+
+  void updateParagraphSafe(Paragraph paragraph) {
+    if (exist(paragraph)) {
+      updateParagraph(paragraph);
+      return;
+    }
     paragraphs.add(paragraph);
   }
 
   /// Returns the last [paragraph] into the document and validate before to avoid exceptions.
   Paragraph getLastSafe() {
-    if (paragraphs.isEmpty) paragraphs.add(Paragraph.base());
+    if (paragraphs.isEmpty) Paragraph.base();
     return paragraphs.last;
   }
 
   /// Returns the last [paragraph] into the document.
   Paragraph? getLast({Paragraph Function()? orElse}) {
     return paragraphs.lastOrNull ?? orElse?.call();
+  }
+
+  /// Returns a [bool] value that indicates if the [Paragraph] exists into the [Document].
+  bool exist(Paragraph pr) {
+    if (paragraphs.isEmpty) return false;
+    return paragraphs.contains(pr) ||
+        paragraphs.firstWhereOrNull((e) => e.id == pr.id) != null;
   }
 
   /// Update a last [paragraph] into the document validating to make more safe the operation.
@@ -35,6 +73,28 @@ class Document {
     paragraphs[paragraphs.length - 1] = paragraph;
   }
 
+  Paragraph? getParagraph(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    return paragraphs
+        .firstWhereOrNull((pr) => pr.id == paragraph.id || pr == paragraph);
+  }
+
+  Paragraph? getParagraphBefore(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    final int index =
+        paragraphs.indexWhere((pr) => pr.id == paragraph.id || pr == paragraph);
+    if (index <= 0) return null;
+    return paragraphs.elementAt(index - 1);
+  }
+
+  Paragraph? getParagraphAfter(Paragraph paragraph) {
+    if (paragraphs.isEmpty) return null;
+    final int index =
+        paragraphs.indexWhere((pr) => pr.id == paragraph.id || pr == paragraph);
+    if (index < 0 && (index + 1) >= paragraphs.length) return null;
+    return paragraphs.elementAt(index + 1);
+  }
+
   /// Update a [paragraph] into the document validating to make more safe the operation.
   void updateParagraph(Paragraph paragraph) {
     int lastIndex = paragraphs.lastIndexOf(paragraph);
@@ -43,8 +103,8 @@ class Document {
       lastIndex = paragraphs.indexWhere((pr) => pr.id == paragraph.id);
     }
     if (paragraphs.isEmpty || lastIndex == -1) {
-      paragraphs.add(paragraph);
-      return;
+      throw StateError(
+          'Not found element of type ${paragraph.runtimeType} with id: ${paragraph.id}');
     }
     paragraphs[lastIndex] = paragraph;
   }
@@ -63,40 +123,6 @@ class Document {
   @Deprecated(
       'ensureCorrectFormat is no longer used and will be removed in future releases')
   Document ensureCorrectFormat() {
-    final List<Paragraph> newParagraphs = [];
-    for (int index = 0; index < paragraphs.length; index++) {
-      final Paragraph paragraph = paragraphs.elementAt(index);
-      if (paragraph.lines.isNotEmpty) {
-        final Line line = paragraph.lines.first;
-        if (line.data == '\n' && paragraph.lines.length > 1) {
-          newParagraphs.add(
-              Paragraph(lines: [Line(data: '\n')], type: ParagraphType.block));
-          paragraph.removeLine(0);
-          paragraph.setTypeSafe(paragraph.blockAttributes != null
-              ? ParagraphType.block
-              : ParagraphType.inline);
-          newParagraphs.add(paragraph.clone);
-        } else {
-          if (line.data == '\n' &&
-              paragraph.blockAttributes == null &&
-              paragraph.lines.length == 1) {
-            paragraph.setType(ParagraphType.block);
-          }
-          if (paragraph.blockAttributes != null) {
-            paragraph.setTypeSafe(ParagraphType.block);
-          } else {
-            paragraph.setTypeSafe(ParagraphType.inline);
-          }
-          newParagraphs.add(paragraph);
-        }
-      } else if (paragraph.lines.isEmpty) {
-        paragraph.insert(Line(data: '\n'));
-        paragraph.setTypeSafe(ParagraphType.block);
-        newParagraphs.add(paragraph);
-      }
-    }
-    clean();
-    paragraphs.addAll([...newParagraphs]);
     return this;
   }
 
@@ -111,7 +137,7 @@ class Document {
     final StringBuffer buffer = StringBuffer('  Paragraph:\n');
     final String rawParagraph = paragraphs.map((Paragraph paragraph) {
       for (final Line line in paragraph.lines) {
-        buffer.writeln('    $line');
+        buffer.writeln('  ${line.toPrettyString(indent: '  ')}');
       }
       final String attrStr = paragraph.blockAttributes != null
           ? 'Paragraph Attributes: ${paragraph.blockAttributes ?? <String, dynamic>{}}'

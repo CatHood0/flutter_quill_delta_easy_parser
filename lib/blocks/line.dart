@@ -1,4 +1,8 @@
 import 'package:collection/collection.dart';
+import 'package:flutter_quill_delta_easy_parser/blocks/text_fragment.dart';
+import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
+import 'package:flutter_quill_delta_easy_parser/utils/nano_id_generator.dart';
+import 'package:meta/meta.dart';
 
 /// Represents a line of data with associated attributes.
 ///
@@ -18,61 +22,208 @@ import 'package:collection/collection.dart';
 /// print(line.toString()); // Output: Data: Updated data, attributes: {color: red, size: 12px}
 /// ```
 class Line {
-  /// The main data object associated with the line.
-  Object? data;
+  final List<TextFragment> _fragments;
+  final String id;
+  bool _sealed;
 
-  /// Optional attributes associated with the line data.
-  Map<String, dynamic>? attributes;
-
-  /// Constructs a [Line] instance with optional initial [data] and [attributes].
   Line({
-    this.data,
-    this.attributes,
-  });
+    required List<TextFragment> fragments,
+  })  : _fragments = List.from(fragments),
+        _sealed = fragments.isEmpty
+            ? false
+            : fragments.isNotEmpty && fragments.length == 1
+                ? fragments.first.data == '\n' ||
+                    fragments.first.data is Map<String, dynamic>
+                : false,
+        id = nanoid(10);
 
-  /// Sets the data object of the line to [data].
-  void setData(Object? data) {
-    this.data = data;
+  Line.fromData({required Object data, Map<String, dynamic>? attributes})
+      : _fragments = List.from(
+          [
+            TextFragment(
+              data: data,
+              attributes: attributes,
+            )
+          ],
+        ),
+        _sealed = data == '\n' || data is Map ? true : false,
+        id = nanoid(10);
+
+  Line.newLine()
+      : _fragments = List.from(
+          [
+            TextFragment(
+              data: '\n',
+            )
+          ],
+        ),
+        _sealed = true,
+        id = nanoid(10);
+
+  void seal() {
+    _sealed = true;
   }
 
-  /// Sets the attributes of the line to [attrs].
-  ///
-  /// If [attrs] is `null`, no changes are made to the current attributes.
-  void setAttributes(Map<String, dynamic>? attrs) {
-    if (attrs == null) return;
-    attributes = attrs;
+  void unseal() {
+    _sealed = false;
   }
 
-  /// Merges additional [attrs] into the current attributes.
-  ///
-  /// If [attributes] is `null`, creates a new map and adds [attrs] to it.
-  void mergeAttributes(Map<String, dynamic> attrs) {
-    attributes?.addAll(attrs);
+  void removeFragment(TextFragment fragment) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be removed when $runtimeType is sealed');
+    }
+    _fragments.remove(fragment);
+  }
+
+  void removeFragmentAt(int index) {
+    if (_sealed) {
+      throw StateError(
+          'Cannot make remove operation when $runtimeType is sealed');
+    }
+    _fragments.removeAt(index);
+  }
+
+  void removeFragmentWhere({required bool Function(TextFragment) where}) {
+    if (_sealed) {
+      throw StateError(
+          'Cannot make remove operation when $runtimeType is sealed');
+    }
+    _fragments.removeWhere(where);
+  }
+
+  void updateFragment(int index, TextFragment fragment) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be updated when $runtimeType is sealed');
+    }
+    _fragments[index] = fragment;
+  }
+
+  void addFragment(TextFragment fragment) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
+    }
+    if (fragment.data is String || fragment.data is Map) {
+      if (fragment.data is String) {
+        _mergeWithTail(fragment);
+        return;
+      }
+      _fragments.add(fragment);
+      return;
+    }
+  }
+
+  void insertAt(int index, TextFragment fragment) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be inserted at $index when $runtimeType is sealed');
+    }
+    _fragments.insert(index, fragment);
+    return;
+  }
+
+  void insertBefore(int index, TextFragment fragment) {
+    if (_sealed) {
+      throw StateError(
+          'Element of type ${fragment.runtimeType} cannot be inserted before at $index when $runtimeType is sealed');
+    }
+    _fragments.insert(index - 1, fragment);
+    return;
+  }
+
+  void _mergeWithTail(TextFragment fragment) {
+    final TextFragment? previous = _fragments.lastOrNull;
+    void add() {
+      _fragments.add(fragment);
+    }
+
+    if (previous == null ||
+        previous.data is! String ||
+        fragment.data is! String ||
+        previous.data == '\n' ||
+        fragment.data == '\n') {
+      add();
+      return;
+    }
+    final int lastIndex = _fragments.length - 1;
+    final bool areAttributesEquals =
+        mapEquality(previous.attributes, fragment.attributes) ||
+            (previous.attributes == null && fragment.attributes == null);
+    if (areAttributesEquals) {
+      final String previousData = previous.data as String;
+      final String newData = '$previousData${fragment.data}';
+      _fragments[lastIndex] = TextFragment(
+        data: newData,
+        attributes: previous.attributes,
+      );
+      return;
+    }
+    add();
   }
 
   /// Creates a deep copy of the current [Line] instance.
-  Line get clone => Line(data: data, attributes: attributes);
+  Line get clone => Line(fragments: <TextFragment>[..._fragments]);
 
-  /// Clears the data and attributes of the line, setting them to `null`.
-  void cleanLine() {
-    data = null;
-    attributes = null;
-  }
+  List<TextFragment> get fragments =>
+      List<TextFragment>.unmodifiable(_fragments);
+  @visibleForTesting
+  List<TextFragment> get rawFragments => _fragments;
+  int get length => _fragments.length;
+  bool get isSingle => _fragments.length == 1;
+  String get toPlainText => _fragments
+      .map<String>(
+        (TextFragment e) => e.data is! String ? '' : e.data.toString(),
+      )
+      .join();
+  int get textLength => _fragments
+      .map<int>(
+        (TextFragment e) => e.data is! String ? 1 : e.data.toString().length,
+      )
+      .fold(0, (int a, int b) => a + b);
+  bool get isNewLine => isSingle ? _fragments.single.data == '\n' : false;
+  bool get isSealed => _sealed;
+  bool get isEmbedFragment => _fragments.single.data is Map<String, dynamic>;
+  bool get isTextInsert => _fragments.isEmpty || _fragments.first.data != '\n';
+  TextFragment? get first => _fragments.firstOrNull;
+  TextFragment? get last => _fragments.lastOrNull;
+  bool get isEmpty => _fragments.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   @override
   String toString() {
-    data ??= null;
-    attributes ??= null;
-    return 'Line: "${data is String ? '$data'.replaceAll('\n', '\\n') : data}"${attributes == null ? '' : ', attributes: $attributes'}';
+    return 'Line: $_fragments, Sealed: $_sealed';
   }
+
+  String toPrettyString({String indent = ' '}) {
+    final StringBuffer buffer = StringBuffer(indent);
+    final String rawFragments = _fragments.map((TextFragment fragment) {
+      buffer.writeln(
+          '${'$indent  '}${fragment.toString().replaceAll('\n', '¶')},');
+      final String str = '$buffer';
+      buffer
+        ..clear()
+        ..write(indent);
+      return str;
+    }).join();
+    return '${indent}Line: <Sealed value:$_sealed> [\n$rawFragments${'$indent  '}]';
+  }
+
+  TextFragment elementAt(int index) => _fragments.elementAt(index);
+  TextFragment? elementAtOrNull(int index) => _fragments.elementAtOrNull(index);
+
+  TextFragment operator [](int index) => _fragments[index];
+
+  void operator []=(int index, TextFragment fragment) =>
+      _fragments[index] = fragment;
 
   @override
   bool operator ==(covariant Line other) {
     if (identical(this, other)) return true;
-    return data == other.data &&
-        MapEquality().equals(attributes, other.attributes);
+    return const ListEquality().equals(_fragments, other._fragments);
   }
 
   @override
-  int get hashCode => Object.hash(data, attributes);
+  int get hashCode => Object.hashAll([_fragments]);
 }

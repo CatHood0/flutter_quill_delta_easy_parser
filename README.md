@@ -27,102 +27,124 @@ void main() {
     ..insert(' to a website')
     ..insert('\n');
 
-  final Document? document = RichTextParser().parseDelta(delta);
-  debugPrint(document.toPrettyString());
+final Document? document = DocumentParser()
+    .parseDelta(
+      delta: delta,
+      returnNoSealedCopies: false,
+      ignoreAllNewLines: false,
+    );
+debugPrint(document.toPrettyString());
 }
 ```
 
-Output in console
+**Output in console**:
 
 ```console
 Document:
     Paragraph:
-        Line: "This is "
-        Line: "bold", Attributes: {bold: true}
-        Line: " and "
-        Line: "italic", Attributes: {italic: true}
-        Line: " text with "
-        Line: "custom color", Attributes: {color: #FF0000}
+        Line: [
+          TextFragment: "This is "
+          TextFragment: "bold", Attributes: {bold: true}
+          TextFragment: " and "
+          TextFragment: "italic", Attributes: {italic: true}
+          TextFragment: " text with "
+          TextFragment: "custom color", Attributes: {color: #FF0000}
+        ]
         Paragraph Attributes: {header: 1}
         Type: block 
     Paragraph:
-        Line: "\n"
+        Line: [
+          TextFragment: "\n"
+        ]
         Paragraph Attributes: {header: 1}
-        Type: block 
+        Type: lineBreak 
     Paragraph:
-        Line: "This is a list item"
+        Line: [
+          TextFragment: "This is a list item"
+        ]
+        Line: [
+          TextFragment: "Another list item"
+        ]
         Paragraph Attributes: {list: ordered}
         Type: block 
     Paragraph:
-        Line: "Another list item"
-        Paragraph Attributes: {list: ordered}
-        Type: block 
-    Paragraph:
-        Line: "Third list item"
-        Type: inline 
-    Paragraph:
-        Line: "This is a "
-        Line: "link", Attributes: {link: https://example.com}
-        Line: " to a website"
+        Line: [
+          TextFragment: "Third list item",
+        ]
+        Line: [
+          TextFragment: "This is a "
+          TextFragment: "link", Attributes: {link: https://example.com}
+          TextFragment: " to a website"
+        ]
         Type: inline 
 ```
 
-## What Does the Package Do?
+## What Does `DocumentParser`?
 
-This package transforms the content of a **Quill JS** and **Flutter Quill** editors into an easy-to-work-with paragraph format.
+Transforms the content of a **Quill JS** editor and **Flutter Quill** editors into an easy-to-work paragraph format.
 
-The output of both editors is `Quill Delta` format. While the `Delta` format works great for a browser-based editor like `Quill`, it's not the most convenient data format if you'd like to generate other types of documents (e.g., Word or PDF) from Quill's contents.
+The output of both editors is `Delta` format. While the `Delta` format works great, but, when you need to use it to generate other types of documents (e.g., Word or PDF) from Quill's contents, you probably will need to do more work to format the paragraphs correctly without losses the styles.
 
-`RichTextParser` will transform a `Quill Delta` into a more convenient paragraph-based format.
-How Does It Work?
-
-`Quill JS` outputs a `Delta` with a format like the following:
+## Easy example usage
 
 ```dart
-final delta = Delta()
-    ..insert('Hello, how are you?')
-    ..insert('The first Major Section')
-    ..insert('\n', {'header': 1})
-    ..insert('We are writing some ')
-    ..insert('bolded text',{'bold': true})
-    ..insert('\n');
-```
+import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
-`RichTextParser` will transform a Quill Delta into an easier-to-work-with paragraph format, like the one below:
-
-```dart
-
+final Delta delta = Delta()
+  ..insert('Hello, how are you? ')
+  ..insert('The first Major Section')
+  ..insert('\n', {'header': 1})
+  ..insert('We are writing some ')
+  ..insert('bolded text',{'bold': true})
+  ..insert('\n');
+final Document? parsedDocument = DocumentParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta: delta);
+/* 
+it's equal, to build a document manually like this:
 final Document document = Document(paragraphs: [
   Paragraph(
-    lines: [Line(data: "Hello, how are you?")]
-    type: ParagraphType.inline,
-  ),
-  Paragraph(
-    lines: [Line(data: "The First Major Section")],
-    blockAttributes: {"header": 1}
+    lines: [
+      Line(fragments: [
+        TextFragment(data: "Hello, how are you? The first Major Section"),
+      ]),
+    ],
+    blockAttributes: {"header": 1},
     type: ParagraphType.block,
   ),
   Paragraph(
     lines: [
-      Line(data: "We are writing some "),
-      Line(data: "bolded text", attributes: {"bold": true})
-    ]
+      Line(fragments: [
+        TextFragment(data: "We are writing some "),
+        TextFragment(data: "bolded text", attributes: {"bold": true})
+      ]),
+    ],
     type: ParagraphType.inline,
   ),
   Paragraph.newLine(),
 ]);
+*/
 ```
 
-## The Paragraph Format
+## About the `Paragraph`, `Line` and `TextFragment` API
 
-A parsed `Quill JS` document is composed entirely of paragraphs. Each `paragraph` must contain either a lines property, which indicates the content of the paragraph. A `Paragraph` may also contain a `blockAttributes` property, which indicates the formatting of the `Paragraph`.
+### The Paragraph Format
+
+The `Paragraph` format is a simple format, where an object contains a list of lines, these "lines" are completely separated from the others. The value contained in `blockAttributes` must be applied to all lines, regardless.
+
+Each `Paragraph`, depending on its content and attributes, can have a different type. For example:
+
+* A `Paragraph` whose content is a `Line` that has an object totally different from a string, will be considered as a `ParagraphType.embed`.
+* A `Paragraph`, whose content is pure strings, but that contains `blockAttributes`, will be considered a `ParagraphType.block`.
+* A `Paragraph`, whose content only has one new-line, will be considered a `ParagraphType.lineBreak` (even if this new line is applied some type of `blockAttribute`).
+
+> [!NOTE] 
+> The only reason why a `Paragraph` should contain several lines at the same time, is because these lines share the same **block-attributes** (which may or may not have it).
+
 
 `Paragraph` looks like:
 
 ```dart
 class Paragraph {
   final String id;
-  final List<Line> lines;
   // this is an enum that contains values like: inline, block, lineBreak and embed
   ParagraphType type;
   // contains all attributes (usually block attributes like "header", "align" or "code-block") 
@@ -133,6 +155,7 @@ class Paragraph {
   //
   // false by default
   bool _seal;
+  final List<Line> _lines;
 
   Paragraph({
     required this.lines,
@@ -142,73 +165,98 @@ class Paragraph {
 }
 ```
 
-## Lines
+### Line
 
 A `Line` represents a segment of content within a `Paragraph`. This content can be a simple `String` of characters or a more complex structure such as an `embed`.
 
 ```dart
-class Line{
-  Object? data;
-  Map<String, dynamic>? attributes;
+class Line {
+  final String id;
+  final List<TextFragment> _fragments;
+  // if the line is sealed, then we cannot 
+  // add/remove/update any fragment into it
+  bool _sealed;
 
   Line({
-    this.data,
+    required List<TextFragment> fragments,
+  });
+
+  // General methods
+  List<TextFragment> get fragments;
+  void removeFragment(TextFragment fragment);
+  void addFragment(TextFragment fragment);
+  void updateFragment(int index, TextFragment fragment);
+}
+```
+
+### TextFragment
+
+A `TextFragment` represents a segment of content within a `Paragraph`. This content can be a simple String of characters or a more complex structure such as an embed.
+
+```dart
+class TextFragment{
+  Object data;
+  Map<String, dynamic>? attributes;
+
+  TextFragment({
+    required this.data,
     this.attributes,
   });
 }
 ```
 
-For example, consider the following `Paragraph` in Dart:
+### Paragraph with lines example:
 
 ```dart
-
-final Paragraph paragraph = Paragraph(
+final Paragraph basicParagraph = Paragraph(
   lines: [
-    Line(data: 'I am building a new package in Dart. '),
-    Line(data: 'This package will be ', attributes: {'bold': true}),
-    Line(data: 'open source', attributes: {'italic': true}),
-    Line(data: ' and it will help developers process the text entered into a QuillJS editor.'),
+    Line(fragments: [
+      TextFragment(data: 'I am building a new package in Dart. '),
+      TextFragment(data: 'This package will be ', attributes: {'bold': true}),
+      TextFragment(data: 'open source', attributes: {'italic': true}),
+      TextFragment(data: ' and it will help developers process the text entered into a QuillJS editor.'),
+    ]),
   ],
   type: ParagraphType.inline,
 );
-final Paragraph embedPr = Paragraph(
-  lines: [Line(data: {'image': 'https://example.com/image.png'})],
-  type: ParagraphType.embed,
-); 
+// another factory constructors
+final Paragraph embedPr = Paragraph.fromRawEmbed(data: {'image': 'https://example.com/image.png'}, attributes: null, blockAttributes: null); 
+final Paragraph embedPrWithOp = Paragraph.fromEmbed(data: Operation.insert({'image': 'https://example.com/image.png'})); 
+final Paragraph newLinePr = Paragraph.newLine(blockAttributes: null); 
+// A `Paragraph` can also have a `blockAttributes` property. This property indicates what type of paragraph-level formatting has 
+//  been applied. For instance, a header is a `Paragraph` that is formatted as a header. 
+// Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. An example of a `Paragraph` with formatting is shown below.
+final Paragraph bulletListParagraph = Paragraph(
+  lines: [Line(fragments: [
+      TextFragment(data: "I am also a bullet point, but I have "),
+      TextFragment(data: "underlined text", attributes: {"underline": true}),
+      TextFragment(data: " included in my paragraph."),
+    ]),
+  ],
+  blockAttributes: {"list": "bullet"},
+  type: ParagraphType.block,
+);
 ```
 
-## Attributes
+## MergerBuilder
 
-A `Paragraph` can also have a `blockAttributes` property. This property indicates what type of paragraph-level formatting has been applied. For instance, a header is a `Paragraph` that is formatted as a header. Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. An example of a `Paragraph` with formatting is shown below.
+`MergerBuilder` is an abstract class that allows us to implement our own logic to join different paragraphs. By default, `DocumentParser` implements `CommonMergerBuilder`, which focuses on joining paragraphs that maintain the same types, or the same block-attributes.
+
+Currently, only **3** implementations are available:
+
+* `NoMergerBuilder`: does not execute any code and returns the paragraphs as they are created.
+* `BlockMergerBuilder`: joins all paragraphs that contain the same block-attributes (in a row, from the first to the last, not randomly).
+* `CommonMergerBuilder` (we already described it above).
 
 ```dart
-
-final Paragraph bulletPointParagraph = Paragraph(
-  lines: [
-    Line(data: "I am a bullet point.")
-  ],
-  blockAttributes: {"list": "bullet"},
-  type: ParagraphType.block,
-);
-
-final Paragraph bulletPointWithUnderlineParagraph = Paragraph(
-  lines: [
-    Line(data: "I am also a bullet point, but I have "),
-    Line(data: "underlined text", attributes: {"underline": true}),
-    Line(data: " included in my paragraph.")
-  ],
-  blockAttributes: {"list": "bullet"},
-  type: ParagraphType.block,
-);
-
-final Document document = Document(paragraphs: [bulletPointWithUnderlineParagraph, bulletPointParagraph]);
+final parser = DocumentParser(mergerBuilder: <the-merger-that-you-want>);
 ```
 
 See the test folder for detailed usage examples and test cases.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
+> [!TIP]
+>
+> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.0](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md).
 
 ## License
 

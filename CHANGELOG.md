@@ -1,3 +1,58 @@
+## 1.1.0
+
+### Breaking changes
+
+`Line` class has been redesigned so that instead of containing a portion of the text within the `Paragraph`, it contains a new class called `TextFragment`.
+
+#### TextFragment
+
+```dart
+class TextFragment {
+  Object data;
+  Map<String, dynamic>? attributes;
+
+  TextFragment({
+    required this.data,
+    this.attributes,
+  });
+}
+```
+
+#### Line Redesign
+
+`Line` is now able to behave as what it is, a line completely separate from its siblings.
+
+```dart
+class Line {
+  final List<TextFragment> _fragments;
+  final String id;
+  bool _sealed;
+
+  Line({
+    required List<TextFragment> fragments,
+  });
+}
+```
+
+#### RichTextParser deprecation
+
+A name change for the parser has been planned for several versions, however, it was in this release that it was decided to deprecate `RichTextParser` and replace it with `DocumentParser`, which is more convenient for the package. However, using `RichTextParser` should still return a usable `Document`, in case for some reason it cannot be renamed.
+
+```diff
+- RichTextParser().parseDelta(delta);
++ DocumentParser().parseDelta(delta: delta);
+```
+
+**If you need more information about the changes, [check migration guide](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md)**
+
+* Feat: added support for create accumulator algorithms. 
+* Fix: issues where the first new lines of the `Delta` are being remove unnecessarily.
+* Fix: improved and reorganized general internal API to be have a standard of how it should work. 
+* Fix: issues where the paragraphs with only a new-line is considered a `ParagraphType.block`.  
+* Fix: `toPrettyString()` bad string return.
+* Chore: added `toPrettyString()` for `Paragraph` class.
+* Chore(test): improve expect messages to be more readable.
+
 ## 1.0.6
 
 * Fix: `toPrettyString()` from Document that is not working as expected.
