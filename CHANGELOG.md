@@ -1,3 +1,8 @@
+## 1.1.2
+
+* Fix: typo in documentation about `mergerBuilder` in `DocumentParser`.
+* Fix: version typo in README a migration guide.
+
 ## 1.1.1
 
 * Fix: typo in README.
