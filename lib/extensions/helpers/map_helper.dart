@@ -29,7 +29,8 @@
 ///
 /// bool result = mapEquality(map1, map2); // true
 /// ```
-bool mapEquality(Map<String, dynamic>? map1, Map<String, dynamic>? map2) {
+bool mapEquality(Map<String, dynamic>? map1, Map<String, dynamic>? map2, [bool allowNullables = false]) {
+  if(allowNullables && map1 == null && map2 == null) return true;
   if (map1 == null || map2 == null) return false;
 
   // Check if both maps have the same keys
