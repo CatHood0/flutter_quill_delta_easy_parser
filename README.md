@@ -94,7 +94,7 @@ final Delta delta = Delta()
   ..insert('\n');
 final Document? parsedDocument = RichTextParser(mergerBuilder: const CommonMergerBuilder()).parseDelta(delta);
 /* 
-it's equals, to build a document manually like this:
+it's equal, to build a document manually like this:
 final Document document = Document(paragraphs: [
   Paragraph(
     lines: [
