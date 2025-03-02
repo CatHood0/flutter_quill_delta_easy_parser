@@ -119,11 +119,11 @@ final Document document = Document(paragraphs: [
 */
 ```
 
-## About the Document, Paragraph, Line and TextFragment API
+## About the `Paragraph`, `Line` and `TextFragment` API
 
 ### The Paragraph Format
 
-The `Paragraph` format is a simple format, where an object contains a list of `Line`s, these "lines" are completely separated from the others. The value contained in `blockAttributes` must be applied to all lines, regardless.
+The `Paragraph` format is a simple format, where an object contains a list of lines, these "lines" are completely separated from the others. The value contained in `blockAttributes` must be applied to all lines, regardless.
 
 Each `Paragraph`, depending on its content and attributes, can have a different type. For example:
 
@@ -187,13 +187,14 @@ class Line {
 ### TextFragment
 
 A `TextFragment` represents a segment of content within a `Paragraph`. This content can be a simple String of characters or a more complex structure such as an embed.
+
 ```dart
-class Line{
+class TextFragment{
   Object data;
   Map<String, dynamic>? attributes;
 
-  Line({
-    this.data,
+  TextFragment({
+    required this.data,
     this.attributes,
   });
 }
