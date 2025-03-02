@@ -1,6 +1,6 @@
 # Flutter Quill Easy Parser
 
-A Dart package designed to transform `Flutter Quill` content into a structured document format, making it easier to handle and convert for various use cases like generating `Word` or `PDF` documents.
+A Flutter package designed to transform `Flutter Quill` content into a structured document format, making it easier to handle and convert for various use cases like generating `Word` or `PDF` documents.
 
 > [!TIP]
 >
