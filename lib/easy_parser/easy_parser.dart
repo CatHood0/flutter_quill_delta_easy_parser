@@ -44,7 +44,8 @@ class RichTextParser {
   }) {
     if (delta.isEmpty) return null;
     _document.clean();
-    final List<fq.Operation> denormalizedOperations = delta.denormalize().operations;
+    final List<fq.Operation> denormalizedOperations =
+        delta.denormalize().operations;
     bool ignoreNewLine = true;
     bool hasNextOp = true;
     int? ignoreNewLineAtIndex;
@@ -58,11 +59,14 @@ class RichTextParser {
       final fq.Operation? previousOperation =
           index == 0 ? null : denormalizedOperations.elementAtOrNull(index - 1);
       final fq.Operation operation = it.current;
-      final fq.Operation? nextOp = denormalizedOperations.elementAtOrNull(index + 1);
+      final fq.Operation? nextOp =
+          denormalizedOperations.elementAtOrNull(index + 1);
       _checkOperation(index, operation);
       if (nextOp != null) _checkOperation(index, nextOp);
 
-      if (ignoreAllNewLines && operation.data == '\n' && operation.attributes == null) {
+      if (ignoreAllNewLines &&
+          operation.data == '\n' &&
+          operation.attributes == null) {
         continue;
       }
 
@@ -71,16 +75,21 @@ class RichTextParser {
       }
 
       if (operation.data == '\n' && !startParagraphNewLineChecking) {
-        _document.insert(Paragraph.newLine(blockAttributes: operation.attributes));
+        _document
+            .insert(Paragraph.newLine(blockAttributes: operation.attributes));
         continue;
       }
 
-      final bool isParagraphBreak = previousOperation?.data != '\n' && operation.data == '\n';
-      final bool isBlankLine = previousOperation?.data == '\n' && operation.data == '\n';
+      final bool isParagraphBreak =
+          previousOperation?.data != '\n' && operation.data == '\n';
+      final bool isBlankLine =
+          previousOperation?.data == '\n' && operation.data == '\n';
 
       ignoreNewLine = countForwardNewLines < 1;
 
-      operation.data == '\n' ? countForwardNewLines++ : countForwardNewLines = 0;
+      operation.data == '\n'
+          ? countForwardNewLines++
+          : countForwardNewLines = 0;
       hasNextOp = nextOp != null;
       final bool isLastInsertion = isParagraphBreak && !hasNextOp;
 
@@ -106,11 +115,15 @@ class RichTextParser {
             lastParagraph.seal(sealLines: true);
             _document.updateLast(lastParagraph);
           }
-          _document.insert(Paragraph.newLine(blockAttributes: operation.attributes));
+          _document
+              .insert(Paragraph.newLine(blockAttributes: operation.attributes));
         } else if (isLastInsertion && operation.attributes == null) {
-          _document.insert(Paragraph.newLine(blockAttributes: operation.attributes));
+          _document
+              .insert(Paragraph.newLine(blockAttributes: operation.attributes));
         } else if (isParagraphBreak) {
-          if (lastParagraph.length > 1 && operation.attributes != null && !lastParagraph.shouldBreakToNext) {
+          if (lastParagraph.length > 1 &&
+              operation.attributes != null &&
+              !lastParagraph.shouldBreakToNext) {
             lastParagraph.unseal();
             final Line lastLine = lastParagraph.removeLastLine();
             lastParagraph.seal(sealLines: true);
@@ -175,7 +188,8 @@ class RichTextParser {
       paragraph = Paragraph.base();
       _document.insert(paragraph);
     }
-    if (paragraph.isEmpty || (paragraph.last!.isSealed && paragraph.last!.isNotEmpty)) {
+    if (paragraph.isEmpty ||
+        (paragraph.last!.isSealed && paragraph.last!.isNotEmpty)) {
       paragraph.insert(Line(
         fragments: [],
       ));
