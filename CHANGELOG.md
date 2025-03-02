@@ -45,7 +45,7 @@ A name change for the parser has been planned for several versions, however, it 
 
 **If you need more information about the changes, [check migration guide](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/migrations.md)**
 
-* Feat: added support for create accumulator algorithms. 
+* Feat: added `mergerBuilder` param to parser. 
 * Fix: issues where the first new lines of the `Delta` are being remove unnecessarily.
 * Fix: improved and reorganized general internal API to be have a standard of how it should work. 
 * Fix: issues where the paragraphs with only a new-line is considered a `ParagraphType.block`.  
