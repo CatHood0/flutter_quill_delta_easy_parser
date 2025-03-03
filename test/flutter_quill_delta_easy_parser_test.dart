@@ -135,70 +135,27 @@ void main() {
     _execExpects(parsedDocument, expectedDocument);
   });
 
-  test('Should convert Delta with various attributes', () {
+  test(
+      'Should merge different paragraphs with similar attributes into a same one',
+      () {
     final Delta delta = Delta()
-      ..insert('This is ')
-      ..insert('bold', {'bold': true})
-      ..insert(' and ')
-      ..insert('italic', {'italic': true})
-      ..insert(' text with ')
-      ..insert('custom color', {'color': '#FF0000'})
-      ..insert('\n\n', {'header': 1})
-      ..insert('This is a list item')
-      ..insert('\n', {'list': 'ordered'})
-      ..insert('Another list item')
-      ..insert('\n', {'list': 'ordered'})
-      ..insert('Third list item')
-      ..insert('\n')
-      ..insert('This is a ')
-      ..insert('link', {'link': 'https://example.com'})
-      ..insert(' to a website')
+      ..insert('void main() {')
+      ..insert('\n', {'code-block': true})
+      ..insert('  print("hello world!");')
+      ..insert('\n', {'code-block': true})
+      ..insert('}')
+      ..insert('\n', {'code-block': true})
       ..insert('\n');
 
     final Document expectedDocument = Document(paragraphs: [
       Paragraph.sealed(
         lines: [
-          Line(
-            fragments: [
-              TextFragment(data: 'This is '),
-              TextFragment(data: 'bold', attributes: {'bold': true}),
-              TextFragment(data: ' and '),
-              TextFragment(data: 'italic', attributes: {'italic': true}),
-              TextFragment(data: ' text with '),
-              TextFragment(
-                  data: 'custom color', attributes: {'color': '#FF0000'}),
-            ],
-          ),
+          Line.fromData(data: 'void main() {'),
+          Line.fromData(data: '  print("hello world!");'),
+          Line.fromData(data: '}'),
         ],
-        blockAttributes: {"header": 1},
+        blockAttributes: {"code-block": true},
         type: ParagraphType.block,
-      ),
-      Paragraph(
-        lines: <Line>[Line.newLine()],
-        blockAttributes: {"header": 1},
-        type: ParagraphType.lineBreak,
-      ),
-      Paragraph(
-        lines: [
-          Line.fromData(data: 'This is a list item'),
-          Line.fromData(data: 'Another list item'),
-        ],
-        blockAttributes: {'list': 'ordered'},
-        type: ParagraphType.block,
-      ),
-      Paragraph(
-        lines: [
-          Line.fromData(data: 'Third list item'),
-          Line(
-            fragments: [
-              TextFragment(data: 'This is a '),
-              TextFragment(
-                  data: 'link', attributes: {'link': 'https://example.com'}),
-              TextFragment(data: ' to a website'),
-            ],
-          ),
-        ],
-        type: ParagraphType.inline,
       ),
       Paragraph.newLine(),
     ]);
