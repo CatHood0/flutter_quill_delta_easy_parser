@@ -1,3 +1,8 @@
+## 1.1.3
+
+* Fix: `Line` class description in README.
+* Chore: added documentation in migration about the change in `Line` class
+
 ## 1.1.2
 
 * Fix: typo in documentation about `mergerBuilder` in `DocumentParser`.

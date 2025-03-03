@@ -4,7 +4,7 @@ A Flutter package designed to transform `Flutter Quill` content into a structure
 
 > [!TIP]
 >
-> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.2](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/v106_to_v112.md).
+> If you're using version 1.0.6 or minor versions, see [the migration guide to migrate to 1.1.3](https://github.com/CatHood0/flutter_quill_delta_easy_parser/blob/Main/doc/v106_to_v113.md).
 
 ## Usage Example
 
@@ -128,6 +128,20 @@ final Document document = Document(paragraphs: [
 */
 ```
 
+## MergerBuilder
+
+`MergerBuilder` is an abstract class that allows us to implement our own logic to join different paragraphs. By default, `DocumentParser` implements `CommonMergerBuilder`, which focuses on joining paragraphs that maintain the same types, or the same block-attributes.
+
+Currently, only **3** implementations are available:
+
+* `NoMergerBuilder`: does not execute any code and returns the paragraphs as they are created.
+* `BlockMergerBuilder`: joins all paragraphs that contain the same block-attributes (in a row, from the first to the last, not randomly).
+* `CommonMergerBuilder` (we already described it above).
+
+```dart
+final parser = DocumentParser(mergerBuilder: <the-merger-that-you-want>);
+```
+
 ## About the `Paragraph`, `Line` and `TextFragment` API
 
 ### The Paragraph Format
@@ -171,7 +185,7 @@ class Paragraph {
 
 ### Line
 
-A `Line` represents a segment of content within a `Paragraph`. This content can be a simple `String` of characters or a more complex structure such as an `embed`.
+`Line` class represents a section of the `paragraph` separates of its siblings. 
 
 ```dart
 class Line {
@@ -191,6 +205,37 @@ class Line {
   void addFragment(TextFragment fragment);
   void updateFragment(int index, TextFragment fragment);
 }
+```
+
+This is useful when we have a **list**, **code-block** or **blockquote**, because every "`Line`" represents another item an allow us create them without make a manual accumulation. By default, all of them are merged using `mergerBuilder` and passing `CommonMergerBuilder` in `DocumentParser`, but, if you want to avoid merge any `Paragraph` with its similar parts, then just use `NoMergerBuilder`. 
+
+You can see now it, like this plain text diagram representation:
+```
+--------------Paragraph------------------
+| 1. This is a ordered list item        |
+| 2. This is another ordered list item  |
+| 3. Just a different ordered list item |
+-----------------------------------------
+```
+
+Its similar to create a `Paragraph` like (just when `BlockMergerBuilder` or `CommonMergerBuilder` is being used):
+
+```dart
+Paragraph(
+ lines: [
+   Line(fragments: [
+     TextFragment(data: 'This is a ordered list item')
+   ]),
+   Line(fragments: [
+     TextFragment(data: 'This is another ordered list item'),
+   ]),
+   Line(fragments: [
+     TextFragment(data: 'Just a different ordered list item'),
+   ]),
+ ],
+ blockAttributes: {'list': 'ordered'},
+ type: ParagraphType.block,
+);
 ```
 
 ### TextFragment
@@ -240,20 +285,6 @@ final Paragraph bulletListParagraph = Paragraph(
   blockAttributes: {"list": "bullet"},
   type: ParagraphType.block,
 );
-```
-
-## MergerBuilder
-
-`MergerBuilder` is an abstract class that allows us to implement our own logic to join different paragraphs. By default, `DocumentParser` implements `CommonMergerBuilder`, which focuses on joining paragraphs that maintain the same types, or the same block-attributes.
-
-Currently, only **3** implementations are available:
-
-* `NoMergerBuilder`: does not execute any code and returns the paragraphs as they are created.
-* `BlockMergerBuilder`: joins all paragraphs that contain the same block-attributes (in a row, from the first to the last, not randomly).
-* `CommonMergerBuilder` (we already described it above).
-
-```dart
-final parser = DocumentParser(mergerBuilder: <the-merger-that-you-want>);
 ```
 
 See the test folder for detailed usage examples and test cases.
