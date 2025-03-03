@@ -15,6 +15,22 @@ class BlockMergerBuilder extends MergerBuilder {
       final Paragraph curParagraph = paragraphs.elementAt(i);
       final Paragraph? nextParagraph = paragraphs.elementAtOrNull(i + 1);
       if (indexsIgnore.contains(i)) {
+        if (nextParagraph != null) {
+          if (canMergeBothParagraphs(
+              paragraph: curParagraph, nextParagraph: nextParagraph)) {
+            final Paragraph lastParagraph = result.last;
+            final Paragraph paragraphResult = Paragraph(
+              lines: <Line>[
+                ...lastParagraph.lines,
+                ...nextParagraph.lines,
+              ],
+              blockAttributes: curParagraph.blockAttributes,
+              type: curParagraph.type,
+            );
+            result[result.length - 1] = paragraphResult;
+            indexsIgnore.add(i + 1);
+          }
+        }
         continue;
       }
       // check if the current iteration is the last

@@ -206,6 +206,34 @@ void main() {
     _execExpects(parsedDocument, expectedDocument);
   });
 
+  test(
+      'Should merge different paragraphs with similar attributes into a same one',
+      () {
+    final Delta delta = Delta()
+      ..insert('void main() {')
+      ..insert('\n', {'code-block': true})
+      ..insert('  print("hello world!");')
+      ..insert('\n', {'code-block': true})
+      ..insert('}')
+      ..insert('\n', {'code-block': true})
+      ..insert('\n');
+
+    final Document expectedDocument = Document(paragraphs: [
+      Paragraph.sealed(
+        lines: [
+          Line.fromData(data: 'void main() {'),
+          Line.fromData(data: '  print("hello world!");'),
+          Line.fromData(data: '}'),
+        ],
+        blockAttributes: {"code-block": true},
+        type: ParagraphType.block,
+      ),
+      Paragraph.newLine(),
+    ]);
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
+    _execExpects(parsedDocument, expectedDocument);
+  });
+
   test('Should handle empty Delta', () {
     final Delta emptyDelta = Delta();
 
