@@ -1,3 +1,7 @@
+## 1.1.4
+
+* Fix: issue where mergers does not works as expected by @CatHood0 in https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/3
+
 ## 1.1.3
 
 * Fix: `Line` class description in README.
