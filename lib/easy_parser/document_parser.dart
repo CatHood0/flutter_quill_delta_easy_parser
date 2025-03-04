@@ -183,6 +183,14 @@ class DocumentParser {
         return;
       }
       if (!ignoreAllNewLines) {
+        if (lastParagraph.isEmbed || lastParagraph.isNewLine) {
+          _document.insert(
+            Paragraph.newLine(
+              blockAttributes: operation.attributes,
+            ),
+          );
+          return;
+        }
         lastParagraph.insertEmptyLine();
       }
     }

@@ -6,7 +6,7 @@ void main() {
   test('Should convert image to paragraph embed', () {
     final Delta delta = Delta()
       ..insert({'image': '/device/user/to/path/file.jpg'})
-      ..insert('\n');
+      ..insert('\n', {'align': 'center'});
 
     final Document expectedDocument = Document(paragraphs: [
       Paragraph.fromRawEmbed(
@@ -311,13 +311,13 @@ void _execExpects(Document? parsedDocument, Document expectedDocument) {
     expect(
       parsedDocument?.paragraphs[i].blockAttributes,
       expectedDocument.paragraphs[i].blockAttributes,
-      reason: 'Block difference at paragraph($i).\n'
+      reason: 'Block difference at paragraph(index: $i).\n'
           'Parsed: ${parsedDocument?.paragraphs[i].blockAttributes},\nExpected: ${expectedDocument.paragraphs[i].blockAttributes}',
     );
     expect(
       parsedDocument?.paragraphs[i].type,
       expectedDocument.paragraphs[i].type,
-      reason: 'ParagraphType difference at paragraph($i).\n'
+      reason: 'ParagraphType difference at paragraph(index: $i).\n'
           'Parsed: "${parsedDocument?.paragraphs[i].type}",\nExpected: "${expectedDocument.paragraphs[i].type}"',
     );
   }
