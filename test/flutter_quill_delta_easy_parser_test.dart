@@ -6,7 +6,7 @@ void main() {
   test('Should convert image to paragraph embed', () {
     final Delta delta = Delta()
       ..insert({'image': '/device/user/to/path/file.jpg'})
-      ..insert('\n', {'align': 'center'});
+      ..insert('\n');
 
     final Document expectedDocument = Document(paragraphs: [
       Paragraph.fromRawEmbed(
