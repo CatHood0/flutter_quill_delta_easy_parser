@@ -3,6 +3,22 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Should split newlines in two different Paragraphs', () {
+    final Delta delta = Delta()
+      ..insert("my_delta\n")
+      ..insert('\n');
+
+    final Document expectedDocument = Document(
+      paragraphs: [
+        Paragraph.fragment(TextFragment(data: "my_delta")),
+        Paragraph.newLine(),
+      ],
+    );
+
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
+    _execExpects(parsedDocument, expectedDocument);
+  });
+
   test('Should convert image to paragraph embed', () {
     final Delta delta = Delta()
       ..insert({'image': '/device/user/to/path/file.jpg'})

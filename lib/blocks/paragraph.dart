@@ -59,8 +59,9 @@ class Paragraph {
     required List<Line> lines,
     required this.type,
     this.blockAttributes,
+    String? id,
   })  : _lines = List<Line>.from(lines),
-        id = nanoid(8),
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id,
         _sealed = type == ParagraphType.block
             ? true
             : lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
@@ -74,12 +75,25 @@ class Paragraph {
     required List<Line> lines,
     required this.type,
     this.blockAttributes,
+    String? id,
   })  : _lines = List<Line>.from(lines),
-        id = nanoid(8),
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id,
         _sealed = true;
 
-  factory Paragraph.withLine() {
+  @visibleForTesting
+  factory Paragraph.fragment(TextFragment frag, {String? id}) {
+    return Paragraph.sealed(
+      id: id,
+      lines: <Line>[
+        Line(fragments: <TextFragment>[frag.clone])
+      ],
+      type: ParagraphType.inline,
+    );
+  }
+
+  factory Paragraph.withLine({String? id}) {
     return Paragraph(
+      id: id,
       lines: <Line>[
         Line(
           fragments: [],
@@ -89,15 +103,20 @@ class Paragraph {
     );
   }
 
-  factory Paragraph.base() {
+  factory Paragraph.base({String? id}) {
     return Paragraph(
+      id: id,
       lines: <Line>[],
       type: ParagraphType.inline,
     );
   }
 
-  factory Paragraph.newLine({Map<String, dynamic>? blockAttributes}) {
+  factory Paragraph.newLine({
+    Map<String, dynamic>? blockAttributes,
+    String? id,
+  }) {
     return Paragraph(
+      id: id,
       lines: <Line>[
         Line.newLine(),
       ],
@@ -108,11 +127,14 @@ class Paragraph {
 
   /// Constructs a [Paragraph] instance from a Object embed.
   /// [operation] is the Quill Delta operation representing the embed.
-  factory Paragraph.fromRawEmbed(
-      {required Object data,
-      Map<String, dynamic>? attributes,
-      Map<String, dynamic>? blockAttributes}) {
+  factory Paragraph.fromRawEmbed({
+    required Object data,
+    Map<String, dynamic>? attributes,
+    Map<String, dynamic>? blockAttributes,
+    String? id,
+  }) {
     return Paragraph(
+      id: id,
       lines: <Line>[
         Line.fromData(data: data, attributes: attributes),
       ],
@@ -130,8 +152,9 @@ class Paragraph {
   /// This factory method creates a paragraph with a single line from the provided embed operation.
   ///
   /// [operation] is the Quill Delta operation representing the embed.
-  factory Paragraph.fromEmbed(fq.Operation operation) {
+  factory Paragraph.fromEmbed(fq.Operation operation, {String? id}) {
     return Paragraph(
+      id: id,
       lines: <Line>[
         Line.fromData(data: operation.data!, attributes: operation.attributes),
       ],
@@ -140,23 +163,86 @@ class Paragraph {
     )..seal();
   }
 
+  /// Get all the Lines into this Paragraph
   List<Line> get lines => List<Line>.unmodifiable(_lines);
+
+  /// Get all direct instances of the lines into this Paragraph
+  ///
+  /// This is called `unsafeLines` because this ones can be modified
+  /// but, all the changes won't be notified to this Paragraph
+  List<Line> unsafeLines() => [..._lines];
+
+  /// Get the last element of this Paragraph
   Line? get last => _lines.lastOrNull;
+
+  /// Get the first element of this Paragraph
   Line? get first => _lines.firstOrNull;
+
+  /// Get the length of lines
   int get length => _lines.length;
   bool get isEmpty => _lines.isEmpty;
   bool get isNotEmpty => !isEmpty;
+
+  /// Determines if this Paragraph is a block type one
   bool get isBlock => type == ParagraphType.block && blockAttributes != null;
+
+  /// Determines if this Paragraph is an embed type one
   bool get isEmbed =>
       type == ParagraphType.embed && lines.first.isEmbedFragment;
+
+  /// Determines if this Paragraph is a new line type one
   bool get isNewLine => type == ParagraphType.lineBreak && length == 1
       ? _lines.single.isNewLine
       : false;
+
+  /// Determines if this Paragraph is just a paragraph empty with a new line
+  /// that has block attributes
   bool get isNewLineWithBlockAttributes => isNewLine && blockAttributes != null;
   @Deprecated('Use isTextInsert')
   bool get isInsertText => type == ParagraphType.inline;
+
+  /// Determines if this Paragraph is just an inline type one
   bool get isTextInsert => type == ParagraphType.inline;
+
+  /// Determines if this paragraph cannot be modified
   bool get isSealed => _sealed;
+
+  /// Determines whether the last line is empty (just a newline) and whether the next
+  /// content should start in a new paragraph.
+  ///
+  /// This is typically used to decide whether to create a new paragraph containing
+  /// just a newline. For example:
+  ///
+  /// Given this Delta input:
+  /// ```json
+  /// [
+  ///   {"insert": "my_delta\n\n"}
+  /// ]
+  /// ```
+  ///
+  /// The parsed `Document` structure should be:
+  /// ```dart
+  /// Document:
+  ///   Paragraph:
+  ///     Line: [
+  ///       TextFragment: "my_delta"
+  ///     ]
+  ///     Type: inline
+  ///   Paragraph:
+  ///     Line: [
+  ///       TextFragment: "\n"
+  ///     ]
+  ///     Type: lineBreak
+  /// ```
+  ///
+  /// The first newline character serves as a separator between content, while the second
+  /// newline indicates an intentional line break. To maintain this distinction in the
+  /// object structure:
+  /// 1. The first newline is treated as content separation
+  /// 2. Subsequent newlines trigger the creation of a new paragraph
+  ///
+  /// This ensures proper semantic representation of intentional line breaks while
+  /// avoiding unnecessary paragraph divisions for content separators.
   bool get shouldBreakToNext => isEmpty ? false : last!.isEmpty;
   bool containsSameAttributes(Map<String, dynamic>? attrs) {
     return mapEquality(blockAttributes, attrs);
@@ -166,13 +252,18 @@ class Paragraph {
     _sealed = true;
     if (sealLines) {
       for (final Line line in _lines) {
-        line.seal();
+        if (!line.isSealed) line.seal();
       }
     }
   }
 
-  void unseal() {
+  void unseal({bool unsealLines = false}) {
     _sealed = false;
+    if (unsealLines) {
+      for (final Line line in _lines) {
+        if (line.isSealed) line.unseal();
+      }
+    }
   }
 
   void insertEmptyLine() {
@@ -286,7 +377,18 @@ class Paragraph {
   /// Creates a clone of the current paragraph.
   Paragraph get clone {
     return Paragraph(
+      id: id,
       lines: [..._lines],
+      blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
+      type: type,
+    );
+  }
+
+  /// Creates a clone of the current paragraph.
+  Paragraph get deepClone {
+    return Paragraph(
+      id: id,
+      lines: _lines.map<Line>((Line l) => l.deepClone).toList(),
       blockAttributes: blockAttributes == null ? null : {...blockAttributes!},
       type: type,
     );
