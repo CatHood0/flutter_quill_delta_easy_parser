@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:flutter_quill_delta_easy_parser/blocks/text_fragment.dart';
 import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
-import 'package:flutter_quill_delta_easy_parser/utils/nano_id_generator.dart';
+import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 import 'package:meta/meta.dart';
 
 /// Represents a line of data with associated attributes.
