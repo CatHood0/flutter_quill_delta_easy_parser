@@ -28,17 +28,21 @@ class Line {
 
   Line({
     required List<TextFragment> fragments,
+    String? id,
   })  : _fragments = List.from(fragments),
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id,
         _sealed = fragments.isEmpty
             ? false
             : fragments.isNotEmpty && fragments.length == 1
                 ? fragments.first.data == '\n' ||
                     fragments.first.data is Map<String, dynamic>
-                : false,
-        id = nanoid(10);
+                : false;
 
-  Line.fromData({required Object data, Map<String, dynamic>? attributes})
-      : _fragments = List.from(
+  Line.fromData({
+    required Object data,
+    String? id,
+    Map<String, dynamic>? attributes,
+  })  : _fragments = List.from(
           [
             TextFragment(
               data: data,
@@ -46,10 +50,10 @@ class Line {
             )
           ],
         ),
-        _sealed = data == '\n' || data is Map ? true : false,
-        id = nanoid(10);
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id,
+        _sealed = data == '\n' || data is Map ? true : false;
 
-  Line.newLine()
+  Line.newLine({String? id})
       : _fragments = List.from(
           [
             TextFragment(
@@ -58,12 +62,14 @@ class Line {
           ],
         ),
         _sealed = true,
-        id = nanoid(10);
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id;
 
+  /// Set a sealed state, where we can't do any type of modification to this Line instance
   void seal() {
     _sealed = true;
   }
 
+  /// Removed the sealed state, to allow modification to this Line instance
   void unseal() {
     _sealed = false;
   }
@@ -163,8 +169,20 @@ class Line {
     add();
   }
 
-  /// Creates a deep copy of the current [Line] instance.
+  /// Creates a copy of the current [Line] instance.
   Line get clone => Line(fragments: <TextFragment>[..._fragments]);
+
+  /// Creates a deep copy of the current [Line] instance.
+  Line get deepClone {
+    return Line(
+      id: id,
+      fragments: _fragments
+          .map<TextFragment>(
+            (TextFragment e) => e.clone,
+          )
+          .toList(),
+    );
+  }
 
   List<TextFragment> get fragments =>
       List<TextFragment>.unmodifiable(_fragments);
@@ -210,13 +228,21 @@ class Line {
     return '${indent}Line: <Sealed value:$_sealed> [\n$rawFragments${'$indent  '}]';
   }
 
-  TextFragment elementAt(int index) => _fragments.elementAt(index);
-  TextFragment? elementAtOrNull(int index) => _fragments.elementAtOrNull(index);
+  TextFragment elementAt(int index) {
+    return _fragments.elementAt(index);
+  }
 
-  TextFragment operator [](int index) => _fragments[index];
+  TextFragment? elementAtOrNull(int index) {
+    return _fragments.elementAtOrNull(index);
+  }
 
-  void operator []=(int index, TextFragment fragment) =>
-      _fragments[index] = fragment;
+  TextFragment operator [](int index) {
+    return _fragments[index];
+  }
+
+  void operator []=(int index, TextFragment fragment) {
+    _fragments[index] = fragment;
+  }
 
   @override
   bool operator ==(covariant Line other) {

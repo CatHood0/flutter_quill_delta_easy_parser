@@ -1,3 +1,7 @@
+## Unreleased
+
+* Feat: provide your own custom ids
+
 ## 1.1.5
 
 * Fix: "cannot insert line when paragraph is sealed" exception when will insert a new line after a embed.

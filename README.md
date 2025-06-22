@@ -179,6 +179,7 @@ class Paragraph {
     required this.lines,
     required this.type,
     this.blockAttributes,
+    String? id,
   });
 }
 ```
@@ -197,6 +198,7 @@ class Line {
 
   Line({
     required List<TextFragment> fragments,
+    String? id,
   });
 
   // General methods
@@ -211,11 +213,11 @@ This is useful when we have a **list**, **code-block** or **blockquote**, becaus
 
 You can see now it, like this plain text diagram representation:
 ```
---------------Paragraph------------------
-| 1. This is a ordered list item        |
-| 2. This is another ordered list item  |
-| 3. Just a different ordered list item |
------------------------------------------
+┌─────────────Paragraph─────────────────┐
+│ 1. This is a ordered list item        │
+│ 2. This is another ordered list item  │
+│ 3. Just a different ordered list item │
+└───────────────────────────────────────┘
 ```
 
 Its similar to create a `Paragraph` like (just when `BlockMergerBuilder` or `CommonMergerBuilder` is being used):

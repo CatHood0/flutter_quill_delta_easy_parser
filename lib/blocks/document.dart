@@ -129,7 +129,9 @@ class Document {
   /// Returns a string representation of the document.
   @override
   String toString() {
-    return 'Paragraphs: ${paragraphs.map((paragraph) => paragraph.toString()).toList().toString()}';
+    return 'Paragraphs: ${paragraphs.map<String>((Paragraph paragraph) {
+          return paragraph.toString();
+        }).toList().toString()}';
   }
 
   /// Returns a version of the string that can be readed more easily.
@@ -161,7 +163,7 @@ class Document {
   @override
   bool operator ==(covariant Document other) {
     if (identical(this, other)) return true;
-    return ListEquality().equals(paragraphs, other.paragraphs);
+    return ListEquality<Paragraph>().equals(paragraphs, other.paragraphs);
   }
 
   @override
