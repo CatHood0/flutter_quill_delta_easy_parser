@@ -1,6 +1,6 @@
-## Unreleased
+## 1.1.6 
 
-* Feat: provide your own custom ids
+* Feat: added ability to set a custom id for paragraphs and lines by @CatHood0 in [#5](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/5)
 
 ## 1.1.5
 

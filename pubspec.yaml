@@ -1,6 +1,6 @@
 name: flutter_quill_delta_easy_parser
 description: "Convert your Quill Delta into a simple document format, that makes more simple manipulate text/block attributes"
-version: 1.1.5
+version: 1.1.6
 documentation: https://github.com/CatHood0/flutter_quill_delta_easy_parser
 repository: https://github.com/CatHood0/flutter_quill_delta_easy_parser
 homepage: https://github.com/CatHood0/flutter_quill_delta_easy_parser

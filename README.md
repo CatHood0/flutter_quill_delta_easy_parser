@@ -169,9 +169,9 @@ class Paragraph {
   //that will be applied to whole lines
   Map<String, dynamic>? blockAttributes; 
 
-  // decides if we want to stop any remove or insert operation type 
+  // Determines if this instance can be modified 
   //
-  // false by default
+  // false by default to allow any type of modification
   bool _seal;
   final List<Line> _lines;
 
