@@ -1,5 +1,4 @@
 import 'package:dart_quill_delta/dart_quill_delta.dart' as fq;
-import 'package:flutter_quill_delta_easy_parser/easy_parser/document_parser.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 
 /// Represents a parser that converts the Quill Delta operations into a structured document format.
