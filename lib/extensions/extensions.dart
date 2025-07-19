@@ -2,6 +2,18 @@ import 'package:collection/collection.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'helpers/string_helper.dart';
 
+extension ObjectCast on Object {
+  /// Cast the object to the type specified
+  T cast<T>() => this as T;
+
+  /// Cast the object only if it is the type specified
+  /// if it's not, just return null
+  T? castOrNull<T>() => this is T ? cast<T>() : null;
+
+  /// Determines if the object is the type specified
+  bool isThis<T>() => this is T;
+}
+
 /// Extension on `Delta` to denormalize operations within a Quill Delta object.
 extension DeltaDenormilazer on Delta {
   /// Denormalizes the operations within the Delta.

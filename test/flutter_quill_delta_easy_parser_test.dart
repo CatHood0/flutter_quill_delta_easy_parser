@@ -306,8 +306,8 @@ void _execExpects(Document? parsedDocument, Document expectedDocument) {
             '\nParsed: ${line?.toPrettyString()},\nExpected: ${expectedLine.toPrettyString()}\n',
       );
       for (int k = 0; k < expectedLine.length; k++) {
-        final TextFragment? fragment = line?.rawFragments[k];
-        final TextFragment expectedFragment = expectedLine.rawFragments[k];
+        final TextFragment? fragment = line?.unsafeFragments()[k];
+        final TextFragment expectedFragment = expectedLine.unsafeFragments()[k];
         expect(
           fragment?.data,
           expectedFragment.data,

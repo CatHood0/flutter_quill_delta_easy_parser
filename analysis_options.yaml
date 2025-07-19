@@ -1,5 +1,28 @@
+include: package:flutter_lints/flutter.yaml
+
 analyzer:
   errors:
     depend_on_referenced_packages: ignore
     prefer_const_literals_to_create_immutables: ignore
-include: package:flutter_lints/flutter.yaml
+  language:
+    strict-raw-types: true 
+
+linter:
+  rules:
+    hash_and_equals: true
+    implicit_reopen: true
+    cancel_subscriptions: true
+    close_sinks: true
+    avoid_web_libraries_in_flutter: true
+    avoid_type_to_string: true
+    avoid_relative_lib_imports: true
+    avoid_empty_else: true
+    avoid_dynamic_calls: false 
+    unnecessary_statements: true
+    use_key_in_widget_constructors: true
+    prefer_conditional_assignment: true
+    prefer_const_declarations: true
+    use_string_buffers: true
+    valid_regexps: true
+    control_flow_in_finally: true
+    always_specify_types: false 
