@@ -42,7 +42,7 @@ class Line {
     String? id,
     Map<String, dynamic>? attributes,
   })  : _fragments = List.from(
-          [
+          <dynamic>[
             TextFragment(
               data: data,
               attributes: attributes,
@@ -50,11 +50,13 @@ class Line {
           ],
         ),
         id = id == null || id.trim().isEmpty ? nanoid(8) : id,
-        _sealed = data == '\n' || data is Map ? true : false;
+        _sealed = data == '\n' || data is Map ? true : false; 
 
-  Line.newLine({String? id})
-      : _fragments = List.from(
-          [
+  Line.newLine({
+    String? id,
+    @visibleForTesting bool enableTesting = false,
+  })  : _fragments = List.from(
+          <dynamic>[
             TextFragment(
               data: '\n',
             )
@@ -134,7 +136,7 @@ class Line {
       throw StateError(
           'Element of type ${fragment.runtimeType} cannot be inserted before at $index when $runtimeType is sealed');
     }
-    _fragments.insert(index - 1, fragment);
+    insertAt(index - 1, fragment);
     return;
   }
 
@@ -159,6 +161,8 @@ class Line {
     if (areAttributesEquals) {
       final String previousData = previous.data as String;
       final String newData = '$previousData${fragment.data}';
+      // does not require a reorganization of siblings
+      // since we're merging two fragments in just one
       _fragments[lastIndex] = TextFragment(
         data: newData,
         attributes: previous.attributes,
@@ -183,26 +187,48 @@ class Line {
     );
   }
 
+  /// Get a secure copy of the fragments into this Line
   List<TextFragment> get fragments =>
       List<TextFragment>.unmodifiable(_fragments);
+
+  /// Get all direct instances of the fragments into this Line
+  ///
+  /// This is called `unsafeLines` because this ones can be modified
+  /// but, all the changes won't be notified to this Line (like reorganizing
+  /// siblings)
+  List<TextFragment> unsafeFragments() => _fragments;
+
   @visibleForTesting
+  @Deprecated('rawFragments is no longer '
+      'used and will be removed '
+      'in future releases. '
+      'Please, use unsafeFragments instead')
   List<TextFragment> get rawFragments => _fragments;
+
   int get length => _fragments.length;
-  bool get isSingle => _fragments.length == 1;
+
+  bool get isSingle => length == 1;
+
   String get toPlainText => _fragments
       .map<String>(
         (TextFragment e) => e.data is! String ? '' : e.data.toString(),
       )
       .join();
+
   int get textLength => _fragments
       .map<int>(
         (TextFragment e) => e.data is! String ? 1 : e.data.toString().length,
       )
       .fold(0, (int a, int b) => a + b);
+
   bool get isNewLine => isSingle ? _fragments.single.data == '\n' : false;
+
   bool get isSealed => _sealed;
+
   bool get isEmbedFragment => _fragments.single.data is Map<String, dynamic>;
+
   bool get isTextInsert => _fragments.isEmpty || _fragments.first.data != '\n';
+
   TextFragment? get first => _fragments.firstOrNull;
   TextFragment? get last => _fragments.lastOrNull;
   bool get isEmpty => _fragments.isEmpty;
@@ -224,15 +250,16 @@ class Line {
         ..write(indent);
       return str;
     }).join();
-    return '${indent}Line: <Sealed value:$_sealed> [\n$rawFragments${'$indent  '}]';
+    final String sealedStr = _sealed ? ' <Sealed>' : "";
+    return '${indent}Line:$sealedStr [\n$rawFragments${'$indent  '}]';
   }
 
   TextFragment elementAt(int index) {
-    return _fragments.elementAt(index);
+    return _fragments[index];
   }
 
   TextFragment? elementAtOrNull(int index) {
-    return _fragments.elementAtOrNull(index);
+    return index < 0 || index >= length ? null : _fragments[index];
   }
 
   TextFragment operator [](int index) {
@@ -243,12 +270,37 @@ class Line {
     _fragments[index] = fragment;
   }
 
-  @override
-  bool operator ==(covariant Line other) {
-    if (identical(this, other)) return true;
-    return const ListEquality().equals(_fragments, other._fragments);
+  bool equals(covariant Line other, {bool full = false}) {
+    if (full) {
+      return id == other.id &&
+          _equality.equals(
+            _fragments,
+            other._fragments,
+          ) &&
+          fullHashCode == other.fullHashCode;
+    }
+
+    return this == other;
   }
 
   @override
-  int get hashCode => Object.hashAll([_fragments]);
+  bool operator ==(covariant Line other) {
+    if (identical(this, other)) return true;
+    return _equality.equals(
+      _fragments,
+      other._fragments,
+    );
+  }
+
+  @override
+  int get hashCode => Object.hashAll(<Object?>[
+        _fragments,
+      ]);
+
+  int get fullHashCode => Object.hashAll(<Object?>[
+        id,
+        _fragments,
+      ]);
 }
+
+const ListEquality<TextFragment> _equality = ListEquality();

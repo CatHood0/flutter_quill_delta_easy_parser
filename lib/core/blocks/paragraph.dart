@@ -312,7 +312,8 @@ class Paragraph {
       throw StateError(
           'Element of type ${fragment.runtimeType} cannot be inserted when $runtimeType is sealed');
     }
-    _lines[_lines.length - 1].addFragment(fragment);
+    final Line line = _lines[_lines.length - 1];
+    line.addFragment(fragment);
   }
 
   void removeLastLineIfNeeded() {
