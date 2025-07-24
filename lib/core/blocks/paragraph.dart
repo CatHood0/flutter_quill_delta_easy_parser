@@ -61,7 +61,7 @@ class Paragraph {
     String? id,
   })  : _lines = List<Line>.from(lines),
         id = id == null || id.trim().isEmpty ? nanoid(8) : id,
-        _sealed = type == ParagraphType.block
+        _sealed = type == ParagraphType.block || type == ParagraphType.embed
             ? true
             : lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
                 ? lines.first.length > 1
@@ -80,22 +80,37 @@ class Paragraph {
         _sealed = true;
 
   @visibleForTesting
-  factory Paragraph.fragment(TextFragment frag, {String? id}) {
+  factory Paragraph.fragment(
+    TextFragment frag, {
+    String? id,
+    Map<String, dynamic>? blockAttributes,
+  }) {
     return Paragraph.sealed(
       id: id,
       lines: <Line>[
         Line(fragments: <TextFragment>[frag.clone])
       ],
-      type: ParagraphType.inline,
+      type: frag.data is! String
+          ? ParagraphType.embed
+          : frag.data == '\n'
+              ? ParagraphType.lineBreak
+              : blockAttributes != null
+                  ? ParagraphType.block
+                  : ParagraphType.inline,
+      blockAttributes:
+          blockAttributes?.isNotEmpty ?? false ? blockAttributes : null,
     );
   }
 
-  factory Paragraph.withLine({String? id}) {
+  factory Paragraph.withLine({
+    String? id,
+    Iterable<TextFragment>? fragments,
+  }) {
     return Paragraph(
       id: id,
       lines: <Line>[
         Line(
-          fragments: [],
+          fragments: [...?fragments],
         ),
       ],
       type: ParagraphType.inline,
@@ -114,14 +129,14 @@ class Paragraph {
     Map<String, dynamic>? blockAttributes,
     String? id,
   }) {
-    return Paragraph(
+    return Paragraph.sealed(
       id: id,
       lines: <Line>[
         Line.newLine(),
       ],
       blockAttributes: blockAttributes,
       type: ParagraphType.lineBreak,
-    )..seal();
+    );
   }
 
   /// Constructs a [Paragraph] instance from a Object embed.
@@ -132,7 +147,7 @@ class Paragraph {
     Map<String, dynamic>? blockAttributes,
     String? id,
   }) {
-    return Paragraph(
+    return Paragraph.sealed(
       id: id,
       lines: <Line>[
         Line.fromData(data: data, attributes: attributes),
@@ -143,7 +158,7 @@ class Paragraph {
               ? ParagraphType.block
               : ParagraphType.inline
           : ParagraphType.embed,
-    )..seal();
+    );
   }
 
   /// Constructs a [Paragraph] instance from a Quill Delta embed operation.
@@ -151,15 +166,23 @@ class Paragraph {
   /// This factory method creates a paragraph with a single line from the provided embed operation.
   ///
   /// [operation] is the Quill Delta operation representing the embed.
-  factory Paragraph.fromEmbed(fq.Operation operation, {String? id}) {
-    return Paragraph(
+  factory Paragraph.fromEmbed(
+    fq.Operation operation, {
+    String? id,
+    Map<String, dynamic>? blockAttributes,
+  }) {
+    final bool isInlineOp = operation.data is String;
+    return Paragraph.sealed(
       id: id,
       lines: <Line>[
-        Line.fromData(data: operation.data!, attributes: operation.attributes),
+        Line.fromData(
+          data: operation.data!,
+          attributes: operation.attributes,
+        ),
       ],
-      type:
-          operation.data is String ? ParagraphType.inline : ParagraphType.embed,
-    )..seal();
+      blockAttributes: blockAttributes,
+      type: isInlineOp ? ParagraphType.inline : ParagraphType.embed,
+    );
   }
 
   /// Get all the Lines into this Paragraph

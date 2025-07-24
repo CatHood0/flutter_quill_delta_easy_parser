@@ -3,14 +3,36 @@ import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Ensure that is fixed: "Issue: Data Loss When Parsing Document #33"', () {
+    final Delta delta = Delta()
+      ..insert("My delta can innovate all of the existent editors\n")
+      ..insert({"img": "path"})
+      ..insert('\n\n\n');
+
+    final Document expectedDocument = Document(
+      paragraphs: [
+        Paragraph.fragment(TextFragment(data: "My delta can innovate all of the existent editors")),
+        Paragraph.fragment(TextFragment(
+          data: {"img": "path"},
+        )),
+        Paragraph.newLine(),
+        Paragraph.newLine(),
+        Paragraph.newLine(),
+      ],
+    );
+
+    final Document? parsedDocument = DocumentParser().parseDelta(delta: delta);
+    _execExpects(parsedDocument, expectedDocument);
+  });
+
   test('Should split newlines in two different Paragraphs', () {
     final Delta delta = Delta()
-      ..insert("my_delta\n")
+      ..insert("\n")
       ..insert('\n');
 
     final Document expectedDocument = Document(
       paragraphs: [
-        Paragraph.fragment(TextFragment(data: "my_delta")),
+        Paragraph.newLine(),
         Paragraph.newLine(),
       ],
     );
@@ -327,7 +349,7 @@ void _execExpects(Document? parsedDocument, Document expectedDocument) {
     expect(
       parsedDocument?.paragraphs[i].blockAttributes,
       expectedDocument.paragraphs[i].blockAttributes,
-      reason: 'Block difference at paragraph(index: $i).\n'
+      reason: 'Block difference at paragraph(index: [$i]).\n'
           'Parsed: ${parsedDocument?.paragraphs[i].blockAttributes},\nExpected: ${expectedDocument.paragraphs[i].blockAttributes}',
     );
     expect(
