@@ -18,23 +18,30 @@ class Document {
   void insert(Paragraph paragraph) {
     final Paragraph? lastParagraph = paragraphs.lastOrNull;
     if (lastParagraph != null) {
-      if (lastParagraph.isEmpty || (lastParagraph.last?.isEmpty ?? false)) {
-        if (lastParagraph.isSealed) {
-          lastParagraph.unseal();
-        }
+      if (lastParagraph.shouldBreakToNext) {
+        lastParagraph.unseal();
+        lastParagraph
+          ..removeLastLineIfNeeded()
+          ..seal();
+        updateLast(lastParagraph);
+      }
+
+      if (lastParagraph.isEmpty) {
+        lastParagraph.unseal();
         lastParagraph.insertAll(paragraph.lines);
         lastParagraph.setType(paragraph.type);
-        lastParagraph.blockAttributes = lastParagraph.blockAttributes;
+        lastParagraph.blockAttributes = paragraph.blockAttributes;
         if ((lastParagraph.isBlock ||
                 lastParagraph.isEmbed ||
                 lastParagraph.isNewLine) &&
             !lastParagraph.isSealed) {
           lastParagraph.seal(sealLines: true);
         }
-        updateLast(paragraph);
+        updateLast(lastParagraph);
         return;
       }
     }
+
     paragraphs.add(paragraph);
   }
 
