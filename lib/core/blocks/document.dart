@@ -18,16 +18,6 @@ class Document {
   void insert(Paragraph paragraph) {
     final Paragraph? lastParagraph = paragraphs.lastOrNull;
     if (lastParagraph != null) {
-      void replacePr(Paragraph from, Paragraph withThis) {
-        from.insertAll(withThis.lines);
-        from.setType(withThis.type);
-        from.blockAttributes = withThis.blockAttributes;
-        if ((from.isBlock || from.isEmbed || from.isNewLine) &&
-            !from.isSealed) {
-          from.seal(sealLines: true);
-        }
-      }
-
       if (lastParagraph.shouldBreakToNext && paragraph.isEmbed ||
           paragraph.isNewLine) {
         lastParagraph.unseal();
@@ -39,7 +29,15 @@ class Document {
 
       if (lastParagraph.isEmpty) {
         lastParagraph.unseal();
-        replacePr(lastParagraph, paragraph);
+        lastParagraph.insertAll(paragraph.lines);
+        lastParagraph.setType(paragraph.type);
+        lastParagraph.blockAttributes = paragraph.blockAttributes;
+        if ((lastParagraph.isBlock ||
+                lastParagraph.isEmbed ||
+                lastParagraph.isNewLine) &&
+            !lastParagraph.isSealed) {
+          lastParagraph.seal(sealLines: true);
+        }
         updateLast(lastParagraph);
         return;
       }
