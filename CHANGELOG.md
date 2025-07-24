@@ -1,3 +1,8 @@
+## 1.1.7
+
+* Chore: improved general API by @CatHood0 in [#6](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/6)
+* Fix: data loss when parsing Delta to Document by @CatHood0 in [#7](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/7)
+
 ## 1.1.6 
 
 * Feat: added ability to set a custom id for paragraphs and lines by @CatHood0 in [#5](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/5)
