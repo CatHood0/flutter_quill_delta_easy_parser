@@ -18,8 +18,7 @@ class Document {
   void insert(Paragraph paragraph) {
     final Paragraph? lastParagraph = paragraphs.lastOrNull;
     if (lastParagraph != null) {
-      if (lastParagraph.shouldBreakToNext && paragraph.isEmbed ||
-          paragraph.isNewLine) {
+      if (lastParagraph.shouldBreakToNext) {
         lastParagraph.unseal();
         lastParagraph
           ..removeLastLineIfNeeded()
