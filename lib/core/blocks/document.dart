@@ -6,6 +6,10 @@ class Document {
   /// List of paragraphs contained within the document.
   final List<Paragraph> paragraphs;
 
+  // Refer to https://www.fileformat.info/info/unicode/char/fffc/index.htm
+  static const String kObjectReplacementCharacter = '\uFFFC';
+  static const int kObjectReplacementInt = 65532;
+
   Document({
     required Iterable<Paragraph> paragraphs,
   }) : paragraphs = <Paragraph>[] {
