@@ -276,8 +276,10 @@ final Paragraph embedPrWithOp = Paragraph.fromEmbed(data: Operation.insert({'ima
 final Paragraph newLinePr = Paragraph.newLine(blockAttributes: null); 
 // A `Paragraph` can also have a `blockAttributes` property. This property indicates what type of paragraph-level formatting has 
 //  been applied. For instance, a header is a `Paragraph` that is formatted as a header. 
-// Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. An example of a `Paragraph` with formatting is shown below.
-final Paragraph bulletListParagraph = Paragraph(
+// Similarly, a bullet point is a `Paragraph` that is formatted as a bullet point. 
+//
+// Example:
+final Paragraph bulletListParagraph = Paragraph.auto(
   lines: [Line(fragments: [
       TextFragment(data: "I am also a bullet point, but I have "),
       TextFragment(data: "underlined text", attributes: {"underline": true}),
@@ -285,8 +287,9 @@ final Paragraph bulletListParagraph = Paragraph(
     ]),
   ],
   blockAttributes: {"list": "bullet"},
-  type: ParagraphType.block,
 );
+
+debugPrint(bulletListParagraph.type.name); // output: block 
 ```
 
 See the test folder for detailed usage examples and test cases.

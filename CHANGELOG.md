@@ -1,3 +1,7 @@
+## 1.1.8
+
+Feat: added support for operating against fragments [#8](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/8)
+
 ## 1.1.7
 
 * Chore: improved general API by @CatHood0 in [#6](https://github.com/CatHood0/flutter_quill_delta_easy_parser/pull/6)

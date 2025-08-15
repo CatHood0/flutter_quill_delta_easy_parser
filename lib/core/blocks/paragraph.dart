@@ -69,6 +69,37 @@ class Paragraph {
                     : lines.single.isNewLine || lines.single.isEmbedFragment
                 : false;
 
+  Paragraph.auto({
+    required List<Line> lines,
+    this.blockAttributes,
+    String? id,
+  })  : _lines = List<Line>.from(lines),
+        id = id == null || id.trim().isEmpty ? nanoid(8) : id,
+        type = lines.isEmpty
+            ? blockAttributes == null || blockAttributes.isEmpty
+                ? ParagraphType.inline
+                : ParagraphType.block
+            : lines.isNotEmpty
+                ? lines.first.isEmbedFragment
+                    ? ParagraphType.embed
+                    : lines.first.isNewLine
+                        ? ParagraphType.lineBreak
+                        : blockAttributes == null || blockAttributes.isEmpty
+                            ? ParagraphType.inline
+                            : ParagraphType.block
+                : blockAttributes == null || blockAttributes.isEmpty
+                    ? ParagraphType.inline
+                    : ParagraphType.block,
+        _sealed = false {
+    _sealed = type == ParagraphType.block || type == ParagraphType.embed
+        ? true
+        : lines.isNotEmpty && lines.length == 1 && lines.first.isNotEmpty
+            ? lines.first.length > 1
+                ? false
+                : lines.single.isNewLine || lines.single.isEmbedFragment
+            : false;
+  }
+
   @visibleForTesting
   Paragraph.sealed({
     required List<Line> lines,
