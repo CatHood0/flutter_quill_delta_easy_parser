@@ -49,7 +49,7 @@ class DocumentParser {
     // sometimes, we can find only new lines at the start of the Delta, then to avoid remove them, we
     // will need to add a verification
     bool startParagraphNewLineChecking = false;
-    final it = denormalizedOperations.iterator;
+    final Iterator<fq.Operation> it = denormalizedOperations.iterator;
     int index = 0;
     while (it.moveNext()) {
       final fq.Operation? previousOperation =
@@ -92,7 +92,9 @@ class DocumentParser {
 
       if (operation.data is! String) {
         _applyEmbed(operation: operation);
-      } else if (operation.data == '\n') {
+        continue;
+      }
+      if (operation.data == '\n') {
         _applyNewLine(
           operation: operation,
           isBlankLine: isBlankLine,
@@ -100,17 +102,16 @@ class DocumentParser {
           isParagraphBreak: isParagraphBreak,
           isLastInsertion: isLastInsertion,
         );
-      } else {
-        _applyText(operation, hasNextOp);
+        continue;
       }
+      _applyText(operation, hasNextOp);
     }
     if (mergerBuilder.enabled) {
       final List<Paragraph> paragraphs = <Paragraph>[..._document.paragraphs];
       _document.clean();
-      final Iterable<Paragraph> newParagraphs = mergerBuilder.buildAccumulation(
+      _document.paragraphs.addAll(mergerBuilder.buildAccumulation(
         paragraphs,
-      );
-      _document.paragraphs.addAll(newParagraphs);
+      ));
     }
     if (returnNoSealedCopies) {
       return Document(

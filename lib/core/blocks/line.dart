@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter_quill_delta_easy_parser/extensions/helpers/map_helper.dart';
 import 'package:flutter_quill_delta_easy_parser/flutter_quill_delta_easy_parser.dart';
 import 'package:meta/meta.dart';
 
@@ -50,7 +49,7 @@ class Line {
           ],
         ),
         id = id == null || id.trim().isEmpty ? nanoid(8) : id,
-        _sealed = data == '\n' || data is Map ? true : false; 
+        _sealed = data == '\n' || data is Map ? true : false;
 
   Line.newLine({
     String? id,
@@ -155,10 +154,7 @@ class Line {
       return;
     }
     final int lastIndex = _fragments.length - 1;
-    final bool areAttributesEquals =
-        mapEquality(previous.attributes, fragment.attributes) ||
-            (previous.attributes == null && fragment.attributes == null);
-    if (areAttributesEquals) {
+    if (previous.canMergeWith(fragment)) {
       final String previousData = previous.data as String;
       final String newData = '$previousData${fragment.data}';
       // does not require a reorganization of siblings
